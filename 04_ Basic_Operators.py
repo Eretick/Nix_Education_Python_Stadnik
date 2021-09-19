@@ -1,4 +1,4 @@
-'''task from https://www.learnpython.org/en/Basic_Operators'''
+# task from https://www.learnpython.org/en/Basic_Operators
 x = object()
 y = object()
 

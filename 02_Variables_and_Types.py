@@ -1,4 +1,4 @@
-'''task from https://www.learnpython.org/en/Variables_and_Types'''
+# task from https://www.learnpython.org/en/Variables_and_Types
 # change this code
 mystring = "hello"
 myfloat = 10.0

@@ -1,4 +1,4 @@
-'''task from https://www.learnpython.org/en/Basic_String_Operations'''
+# task from https://www.learnpython.org/en/Basic_String_Operations
 s = "Strings are awesome!"
 # Length should be 20
 print("Length of s = %d" % len(s))

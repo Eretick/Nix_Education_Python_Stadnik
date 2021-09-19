@@ -1,4 +1,4 @@
-'''task from https://www.learnpython.org/en/Conditions'''
+# task from https://www.learnpython.org/en/Conditions
 # change this code
 number = 116
 second_number = 0

@@ -1,4 +1,4 @@
-'''task from https://www.learnpython.org/en/Lists'''
+# task from https://www.learnpython.org/en/Lists
 numbers = []
 strings = []
 names = ["John", "Eric", "Jessica"]

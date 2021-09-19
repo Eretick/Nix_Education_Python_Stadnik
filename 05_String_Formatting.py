@@ -1,4 +1,4 @@
-'''task from https://www.learnpython.org/en/String_Formatting'''
+# task from https://www.learnpython.org/en/String_Formatting
 data = ("John", "Doe", 53.44)
 
 # correct variant from task page
