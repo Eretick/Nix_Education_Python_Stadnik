@@ -26,6 +26,8 @@ class Menu:
             Game().start()
         elif choise.lower() == 'прошлые слова':
             self.show_prevs()
+        else:
+            exit()
 
     def show_prevs(self):
         try:
