@@ -1,7 +1,8 @@
 # Transport tasks
+import time
+from abc import ABC, abstractmethod
 
-
-class Transport:
+class Transport(ABC):
     """
         Base class for all transprots.\n
         manufacturer=str - current product's creator (company name)
@@ -23,10 +24,12 @@ class Transport:
     def full_name(self):
         return f"{self.manufacturer} {self.model}"
 
+    @abstractmethod
     def move(self, distance):
         self.is_moving = True
         print(f"Moving {distance} meters")
 
+    @abstractmethod
     def stop(self):
         self.is_moving = False
 
@@ -101,6 +104,9 @@ class Car(Transport, Engine):
         else:
             print("You can't move in past, LOL. Move distance must be a positive.")
 
+    def stop(self):
+        self.is_moving = False
+
     def check_fuel(self, km=1):
         if self.fuel - km >= 0:
             return True
@@ -115,9 +121,13 @@ class Skate(Transport):
         super().__init__(manufacturer, model, number=number, owner=owner, color=color)
         self.type = type
 
-    @staticmethod
-    def move(self):
+    def move(self, distance=1):
         print("The skate is moving...")
+        time.sleep(distance)
+        self.stop()
+
+    def stop(self):
+        print("The skate is stopped")
 
 
 class Train(Transport, Engine):
@@ -156,10 +166,18 @@ class Train(Transport, Engine):
         else:
             print("No more passengers for removing!")
 
+    def move(self):
+        print("The train is moving.")
+        print("Chuh-chuh, chuh-chuh")
+
+    def stop(self):
+        print("The train is stopped.")
 
 class Escalator(Transport, Engine):
     move_modes = ['up', 'down']
     mode = move_modes[0]
+    def __str__(self):
+        return f"""Escalator {'' if self.owner is None else "in "+ self.owner} is moving {self.mode}."""
 
     def switch_mode(self, mode=None):
         if mode is None:
@@ -168,8 +186,11 @@ class Escalator(Transport, Engine):
             else:
                 self.mode = self.move_modes[0]
 
-    def __str__(self):
-        return f"""Escalator {'' if self.owner is None else "in "+ self.owner} is moving {self.mode}."""
+    def move(self):
+        self.is_moving = True
+
+    def stop(self):
+        self.is_moving = False
 
 
 if __name__ == "__main__":
@@ -186,6 +207,7 @@ if __name__ == "__main__":
     print("Info about skate:")
     skate = Skate("Profi", "MS 0354-2", color='space')
     print(skate.full_name)
+    skate.move()
 
     esclalator1 = Escalator()
     print(esclalator1)
@@ -205,3 +227,4 @@ if __name__ == "__main__":
     print("Getting out 1 passanger:")
     train.delete_passenger()
     print(train.passengers)
+    train.move()
