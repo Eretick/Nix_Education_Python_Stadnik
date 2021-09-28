@@ -3,17 +3,17 @@ import time
 from abc import ABC, abstractmethod
 
 class Transport(ABC):
-    """
-        Base class for all transprots.\n
-        manufacturer=str - current product's creator (company name)
-        model=str - current product's model
-        number=int - serial number (if exists). Additional argument
-        owner=str - current product's owner (if exists)
-        color=str - current product's color
-    """
     is_moving = False
     color = 'black'
-
+    """
+    Attributes:
+        Base class for all transprots.\n
+        :manufacturer=str - current product's creator (company name)
+        :model=str - current product's model
+        :number=int - serial number (if exists). Additional argument
+        :owner=str - current product's owner (if exists)
+        :color=str - current product's color
+    """
     def __init__(self, manufacturer=None, model=None, number=None, owner=None, color=None):
         self.manufacturer = manufacturer
         self.model = model
@@ -56,6 +56,11 @@ class Engine:
         if self.fuel < 100:
             self._fuel_level += 1
 
+    def __round__(self, n=2):
+        return round(self._fuel_level, n)
+
+    def __int__(self):
+        return int(self._fuel_level)
 
 class Car(Transport, Engine):
     """ Basic class for all cars"""
@@ -173,9 +178,11 @@ class Train(Transport, Engine):
     def stop(self):
         print("The train is stopped.")
 
+
 class Escalator(Transport, Engine):
     move_modes = ['up', 'down']
     mode = move_modes[0]
+
     def __str__(self):
         return f"""Escalator {'' if self.owner is None else "in "+ self.owner} is moving {self.mode}."""
 
@@ -200,7 +207,7 @@ if __name__ == "__main__":
     print(car1)
     print("Cars with the same fuel level:", car1 == car2)
     print("Car-2:")
-    car1.move(2)
+    car1.move(1.5)
     print("Cars with the same fuel level:", car1 == car2)
     print("Car1 has less fuel then Car2:", car1 < car2)
 
@@ -228,3 +235,4 @@ if __name__ == "__main__":
     train.delete_passenger()
     print(train.passengers)
     train.move()
+    print(round(car1))
