@@ -200,6 +200,14 @@ class Escalator(Transport, Engine):
         self.is_moving = False
 
 
+class Scooter(Skate, Car):
+    def move(self, distance=1):
+        super(Car, self).move(distance=distance)
+
+    def stop(self):
+        super(Car, self).stop()
+
+
 if __name__ == "__main__":
     car1 = Car("Audi", "A4", color="red")
     car2 = Car("Nissan", "Altima", color="red")
@@ -235,4 +243,9 @@ if __name__ == "__main__":
     train.delete_passenger()
     print(train.passengers)
     train.move()
-    print(round(car1))
+
+    scooter1 = Scooter()
+    print("Trying to move by scooter #1:")
+    scooter1.move()
+    scooter2 = Scooter()
+    print("Scooter #1 has more fuel then scooter #2:", scooter1 > scooter2)
