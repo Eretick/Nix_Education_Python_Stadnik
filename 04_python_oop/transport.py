@@ -99,6 +99,7 @@ class Car(Transport, Engine):
 
     def move(self, km=1):
         """ Moving considering engine fuel level"""
+        print("(Trying to move as a car)")
         if km >= 0:
             self.is_moving = self.check_fuel(km)
             if self.is_moving:
@@ -127,9 +128,7 @@ class Skate(Transport):
         self.type = type
 
     def move(self, distance=1):
-        print("The skate is moving...")
-        time.sleep(distance)
-        self.stop()
+        super().move(distance)
 
     def stop(self):
         print("The skate is stopped")
@@ -201,11 +200,8 @@ class Escalator(Transport, Engine):
 
 
 class Scooter(Skate, Car):
-    def move(self, distance=1):
-        super(Car, self).move(distance=distance)
-
-    def stop(self):
-        super(Car, self).stop()
+    def move(self):
+        super().move()
 
 
 if __name__ == "__main__":
@@ -245,6 +241,7 @@ if __name__ == "__main__":
     train.move()
 
     scooter1 = Scooter()
+    print("Scooter's MRO:", Scooter.__mro__)
     print("Trying to move by scooter #1:")
     scooter1.move()
     scooter2 = Scooter()
