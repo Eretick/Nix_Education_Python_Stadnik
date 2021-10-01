@@ -30,9 +30,6 @@ Errors:
     def __repr__(self):
         return f'<Sentence(words={len(self.words)}, other_chars={self.__get_symbols()})>'
 
-    def __iter__(self):
-        return self._words()
-
     def __check_full_sentence(self):
         if not self.string.endswith(self.splitters):
             raise ValueError("The sentence must be finished!")
@@ -118,11 +115,11 @@ if __name__ == "__main__":
     for i in s:
         print(i)
     # Just hiding from pylint
-    # iterator = s._words()
-    # print("Check2: s._words() directly. First word:")
-    # print(next(iterator))
-    # print("Check3: Next word:")
-    # print(next(iterator))
+    iterator = s._words()
+    print("Check2: s._words() directly. First word:")
+    print(next(iterator))
+    print("Check3: Next word:")
+    print(next(iterator))
     print("Check 4: Words property check:", s.words)
     print("Check 5: Non-words symbols:", s.other_chars)
     print("Check 6: Indexes. Third item:", s[2])
