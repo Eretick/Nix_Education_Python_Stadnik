@@ -14,7 +14,6 @@ Errors:
      Raising a TypeError if string parametr is not str
      Raising a ValueError if sentence isn't finished
      Raising a MultipleSentencesError if string contains multiple sentences
-
      """
     def __init__(self, string):
         self.string = string
@@ -99,7 +98,6 @@ class SentenceIterator:
 
     def __iter__(self):
         return self
-
 
 
 if __name__ == "__main__":
