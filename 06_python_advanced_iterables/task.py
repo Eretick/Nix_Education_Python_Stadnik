@@ -22,7 +22,7 @@ Errors:
         self.__re_splitters = f'[{"".join(self.splitters)}]'
         if not isinstance(self.string, str):
             raise TypeError('The Sentence class can work only with string!')
-        self.words_splitters = [',', '\'', '\"', ";", ":", "-"]
+        self.words_splitters = [',', '\'', '\"', ";", ":", "-", " "]
         self.__other_chars = []
         self._words_count = 0
         self.__sentence = ""
