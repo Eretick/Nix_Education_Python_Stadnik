@@ -114,9 +114,11 @@ if __name__ == "__main__":
         print(i)
     # Just hiding from pylint
     iterator = s._words()
+    print("Check 1.2. _words method:", iterator)
     print("Check2: s._words() directly. First word:")
     print(next(iterator))
     print("Check3: Next word:")
+    print(next(iterator))
     print(next(iterator))
     print("Check 4: Words property check:", s.words)
     print("Check 5: Non-words symbols:", s.other_chars)
