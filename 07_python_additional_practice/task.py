@@ -13,6 +13,15 @@ def gen(words):
     for word in words:
         yield word
 
+
+class Container:
+    def __init__(self, data):
+        self.data = data
+
+    def __iter__(self):
+        return MyIterator(self.data)
+
+
 class MyIterator:
     """ Custom iterator class """
     def __init__(self, data):
@@ -73,9 +82,18 @@ if __name__ == "__main__":
         print(i)
 
     print("Check5: iterator with 2 next():")
-    iterator = gen(['word5', 'word6'])
+    iterator = MyIterator(['word5', 'word6'])
     print(next(iterator))
     print(next(iterator))
+
+    print("Check7: the same but with container.")
+    c = Container(['word7', 'word8'])
+    i = iter(c)
+    print("Using next():", next(i), next(i))
+    print("Using for:")
+    i = iter(c)
+    for word in i:
+        print(word)
 
     print("Check6: Custom context manager.")
     temp_list = TempList(["word7", "word8", "word9"])
