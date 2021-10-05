@@ -31,12 +31,40 @@ class Game:
         self.player1 = None
         self.player2 = None
 
+    def start(self, versus=False):
+        # begin new game
+        self.new_game(versus)
+
     def new_game(self, versus):
         """ Game reset func """
         self.grid = Grid()
         self.all_points = list(range(1, 10))
         self.__create_players(versus)
         self.marked_cells.clear()
+        self.main()
+
+    def revenge(self):
+        """ Continue playing with the same players """
+        self.grid = Grid()
+        self.all_points = list(range(1, 10))
+        self.player1.marked_cells.clear()
+        self.player2.marked_cells.clear()
+        self.marked_cells.clear()
+        self.main()
+
+    def __create_players(self, versus):
+        """ Functions for recreating players every game.
+        Depends on bool versus mode (user/user or user/AI) """
+        print("Игрок 1:")
+        self.player1 = Player(self.__set_player_name())
+        self.player1.marked_cells.clear()
+        if versus is True:
+            print("Игрок 2:")
+            self.player2 = Player(self.__set_player_name())
+            self.player2.marked_cells.clear()
+        else:
+            self.player2 = Computer("Computer")
+            self.player2.all_points = list(self.all_points)
 
     def show_menu(self):
         """ Main menu """
@@ -67,32 +95,16 @@ class Game:
         """ Menu choice """
         choice = self.__choice()
         if self.__compare(choice, "Начать"):
-            self.main()
+            self.start()
         if self.__compare(choice, "Против"):
-            self.main(versus=True)
+            self.start(versus=True)
         elif self.__compare(choice, "История"):
             self.history()
         elif self.__compare(choice, "Выход"):
             self._exit()
 
-    def __create_players(self, versus):
-        """ Functions for recreating players every game.
-        Depends on bool versus mode (user/user or user/AI) """
-        print("Игрок 1:")
-        self.player1 = Player(self.__set_player_name())
-        self.player1.marked_cells.clear()
-        if versus is True:
-            print("Игрок 2:")
-            self.player2 = Player(self.__set_player_name())
-            self.player2.marked_cells.clear()
-        else:
-            self.player2 = Computer("Computer")
-            self.player2.all_points = list(self.all_points)
-
     def main(self, versus=False):
         """ Main game loop """
-        # begin new game
-        self.new_game(versus)
         self.current_player = self.__choose_first_player()
         print(self.grid.check_filled())
         while not self.grid.check_filled():
@@ -108,6 +120,10 @@ class Game:
         print("Игра окончена!")
         if not winner:
             print("Ничья!")
+        print("Реванш? (да/нет)")
+        choice = self.__compare(self.__choice(), "да")
+        if choice:
+            self.revenge()
         print("Выйти в меню? (да/нет)")
         choice = self.__compare(self.__choice(), "да")
         if choice:
@@ -152,6 +168,12 @@ class Game:
         else:
             self.current_player = self.player1
 
+    @staticmethod
+    def _exit():
+        """ Just user-friendly console exit """
+        input("Выход из игры. Нажмите любую клавишу...")
+        sys.exit()
+
     def history(self):
         """ Showing all players wins history """
         print("История побед/поражений:")
@@ -178,9 +200,3 @@ class Game:
                 print(self.player2.marked_cells)
                 return self.player2
         return False
-
-    @staticmethod
-    def _exit():
-        """ Just user-friendly console exit """
-        input("Выход из игры. Нажмите любую клавишу...")
-        sys.exit()
