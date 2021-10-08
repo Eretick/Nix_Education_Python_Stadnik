@@ -3,40 +3,41 @@ import datetime
 import logging
 import random
 import sys
-from models import Person, Computer
-from views import ConsoleUI, GraphicUI
-from settings import *
+
+from players import Player, Computer
+from grid import Grid
+
+WINNERS_FILE = "winners.log"
+
+# file logger
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger("winners_logger")
+log_handler = logging.FileHandler(f"{WINNERS_FILE}", encoding='utf-8')
+log_handler.setLevel(logging.DEBUG)
+logger.addHandler(log_handler)
 
 
 class Game:
     """ Main game class """
     all_points = list(range(1, 10))
     current_player = None
+    win_comb = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 4, 7],
+                [2, 5, 8], [3, 6, 9], [1, 5, 9], [3, 5, 7]]
     marked_cells = []
 
-    def __init__(self, mode="console"):
-        """
-        :param mode: game mode, "console" or "graphic". Defines an user interface type.
-            default -> "console"
-        """
+    def __init__(self):
         # objects defined later
-        self.menu_options = ["Начать", "Против", "История", "Выхода"]
+        self.grid = None
         self.player1 = None
         self.player2 = None
-        self.mode = mode
-        if self.mode == "console":
-            self.ui = ConsoleUI()
-        else:
-            self.ui = GraphicUI()
-
 
     def start(self, versus=False):
-        """ New game entry point """
-        self.new_game(versus=versus)
+        # begin new game
+        self.new_game(versus)
 
-    def new_game(self, versus=False):
+    def new_game(self, versus):
         """ Game reset func """
-        self.ui = ConsoleUI()
+        self.grid = Grid()
         self.all_points = list(range(1, 10))
         self.__create_players(versus)
         self.marked_cells.clear()
@@ -44,7 +45,7 @@ class Game:
 
     def revenge(self):
         """ Continue playing with the same players """
-        self.ui = ConsoleUI()
+        self.grid = Grid()
         self.all_points = list(range(1, 10))
         self.player1.marked_cells.clear()
         self.player2.marked_cells.clear()
@@ -54,12 +55,12 @@ class Game:
     def __create_players(self, versus):
         """ Functions for recreating players every game.
         Depends on bool versus mode (user/user or user/AI) """
-        self.ui.print("Игрок 1:")
-        self.player1 = Person(self.__set_player_name())
+        print("Игрок 1:")
+        self.player1 = Player(self.__set_player_name())
         self.player1.marked_cells.clear()
         if versus is True:
-            self.ui.print("Игрок 2:")
-            self.player2 = Person(self.__set_player_name())
+            print("Игрок 2:")
+            self.player2 = Player(self.__set_player_name())
             self.player2.marked_cells.clear()
         else:
             self.player2 = Computer("Computer")
@@ -67,25 +68,22 @@ class Game:
 
     def show_menu(self):
         """ Main menu """
-        self.ui.show_menu()
-        if self.mode == "console":
-            self.menu_check(self.ui.menu_check())
+        print("---------Начать--------")
+        print("---Друг против друга---")
+        print("-----История побед-----")
+        print("---------Выход---------")
+        print("Выберите один из тов: начать/против/история/выход")
+        self.__menu_check()
 
-    def menu_check(self, option):
-        if option == self.menu_options[0].lower():
-            self.new_game()
-        if option == self.menu_options[1].lower():
-            self.new_game(versus=True)
-        elif option == self.menu_options[2].lower():
-            self.history()
-        elif option == self.menu_options[3].lower():
-            self._exit()
-        else:
-            logging.debug("No match")
+    @staticmethod
+    def __choice():
+        """ Internal shortcart for user input """
+        return input("Введите свой выбор:")
 
-    def __set_player_name(self):
-        """ Person setup """
-        name = self.ui.input("Введите свое имя: ")
+    @staticmethod
+    def __set_player_name():
+        """ Player setup """
+        name = input("Введите свое имя: ")
         return name
 
     @staticmethod
@@ -93,28 +91,41 @@ class Game:
         """ Simple comparing internal shortcut. Returns True if var==template. """
         return var.lower() == template.lower()
 
+    def __menu_check(self):
+        """ Menu choice """
+        choice = self.__choice()
+        if self.__compare(choice, "Начать"):
+            self.start()
+        if self.__compare(choice, "Против"):
+            self.start(versus=True)
+        elif self.__compare(choice, "История"):
+            self.history()
+        elif self.__compare(choice, "Выход"):
+            self._exit()
+
     def main(self, versus=False):
         """ Main game loop """
         self.current_player = self.__choose_first_player()
-        while not self.ui.grid.check_filled():
+        print(self.grid.check_filled())
+        while not self.grid.check_filled():
             winner = self.check_win()
             if winner:
-                self.ui.print(f"Победил игрок {winner.name}!")
+                print(f"Победил игрок {winner.name}!")
                 self._log_results(winner)
                 break
-            if isinstance(self.current_player, Person):
+            if isinstance(self.current_player, Player):
                 self.show_status()
             self._next_move()
             self.__change_player()
-        self.ui.print("Игра окончена!")
+        print("Игра окончена!")
         if not winner:
-            self.ui.print("Ничья!")
-        self.ui.print("Реванш? (да/нет)")
-        choice = self.__compare(self.ui.choice(), "да")
+            print("Ничья!")
+        print("Реванш? (да/нет)")
+        choice = self.__compare(self.__choice(), "да")
         if choice:
             self.revenge()
-        self.ui.print("Выйти в меню? (да/нет)")
-        choice = self.__compare(self.ui.choice(), "да")
+        print("Выйти в меню? (да/нет)")
+        choice = self.__compare(self.__choice(), "да")
         if choice:
             self.show_menu()
         self._exit()
@@ -133,25 +144,21 @@ class Game:
     @staticmethod
     def _log_results(winner):
         """ Creating winner logs to WINNERS_FILE document """
-        if isinstance(winner, Person):
+        if isinstance(winner, Player):
             date = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
             # logger.debug(f"{date} - победил {winner.name}")
             logger.debug("%s - победил %s", date, winner.name)
 
     def _next_move(self):
         """ Main game players moves logic """
-        if isinstance(self.current_player, Person):
-            point = self.ui.input(f"Ход игрока {self.current_player.name} (номер ячейки):")[0]
-            move = int(self.current_player.move(point))
-        elif isinstance(self.current_player, Computer):
-            move = self.current_player.move()
+        move = self.current_player.move()
         if move in self.all_points and move not in self.marked_cells:
-            self.current_player.add_marked(move)
-            self.ui.grid.fill(move, self.current_player.symbol)
+            self.current_player.marked_cells.append(move)
+            self.grid.fill(move, self.current_player.symbol)
             self.marked_cells.append(move)
         else:
-            if isinstance(self.current_player, Person):
-                self.ui.print(f"Нельзя походить в ячейку {move}.")
+            if isinstance(self.current_player, Player):
+                print(f"Нельзя походить в ячейку {move}.")
             self._next_move()
 
     def __change_player(self):
@@ -161,29 +168,35 @@ class Game:
         else:
             self.current_player = self.player1
 
-    def _exit(self):
+    @staticmethod
+    def _exit():
         """ Just user-friendly console exit """
-        self.ui.exit()
+        input("Выход из игры. Нажмите любую клавишу...")
         sys.exit()
 
     def history(self):
         """ Showing all players wins history """
-        self.ui.print("История побед/поражений:")
-        self.ui.show_history()
-        if self.mode == "console":
-            self.show_menu()
+        print("История побед/поражений:")
+        with open(WINNERS_FILE, "r", encoding="utf-8") as file:
+            text = file.read()
+            if text != "":
+                print(text)
+            else:
+                print("Здесь пока нет истории. Начните новую игру!")
+                self.show_menu()
 
     def show_status(self):
         """ Showing current grid state """
-        self.ui.grid.show()
+        self.grid.show()
 
     def check_win(self):
         """ Check did player maked a line """
-        for part in WIN_COMBS:
+        for part in self.win_comb:
             part = set(part)
             if part.issubset(set(self.player1.marked_cells)):
+                print(self.player1.marked_cells)
                 return self.player1
             if part.issubset(set(self.player2.marked_cells)):
+                print(self.player2.marked_cells)
                 return self.player2
         return False
-
