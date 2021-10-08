@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from freezegun import freeze_time
 import pytest
 import to_test
 
@@ -15,38 +15,23 @@ def test_sum_all():
     assert to_test.sum_all('1', '2')  # не получилось сделать кастомное уведомление
 
 
-@pytest.fixture()
-def morning_time():
-    return datetime(2021, 10, 10, hour=8)
-
-
-@pytest.fixture()
-def afternoon_time():
-    return datetime(2021, 10, 10, hour=13)
-
-
-@pytest.fixture()
-def night_time():
-    return datetime(2021, 10, 10, hour=2)
-
-
 def test_time():
     assert to_test.time_of_day() in ["morning", "afternoon", "night"], "Not all branches are returns value"
     assert isinstance(to_test.time_of_day(), str), "Must return a string!"
 
 
-def test_morning(morning_time):
-    now = morning_time
+@freeze_time("2021-10-08 08:00:01")
+def test_morning():
     assert to_test.time_of_day() == "morning", "Wrong morning calculation"
 
 
-def test_afternoon(afternoon_time):
-    now = afternoon_time
+@freeze_time("2021-10-08 13:00:01")
+def test_afternoon():
     assert to_test.time_of_day() == "afternoon", "Wrong afternoon calculation"
 
 
-def test_night(night_time):
-    now = night_time
+@freeze_time("2021-10-08 21:00:01")
+def test_night():
     assert to_test.time_of_day() == "night", "Wrong night calculation"
 
 
