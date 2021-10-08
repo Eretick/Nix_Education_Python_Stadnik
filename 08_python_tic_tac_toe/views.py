@@ -1,9 +1,11 @@
 """ View module for console version """
 import sys
 
-from models import ConsoleGrid, GraphicGrid
 from tkinter import Tk, Button, Label, Radiobutton, Frame, messagebox
 from settings import WINNERS_FILE
+
+MENU_OPTIONS = ["Начать", "Против", "История", "Выход"]
+
 
 def winners():
     with open(WINNERS_FILE, "r", encoding="utf-8") as file:
@@ -12,10 +14,9 @@ def winners():
             return text
         return "Здесь пока нет истории. Начните новую игру!"
 
+
 class ConsoleUI:
     """ Main class for interact with console UI """
-    def __init__(self):
-        self.pack = ConsoleGrid()
 
     def show_menu(self):
         self.print("---------Начать--------")
@@ -26,8 +27,12 @@ class ConsoleUI:
 
     def choice(self):
         """ Internal shortcart for user self.ui.input """
-        choise = self.input("Введите свой выбор:")
-        return choise
+        choice = self.input("Введите свой выбор:")
+        return choice
+
+    @staticmethod
+    def ask_name():
+        return input("Игрок, введите имя: ")
 
     def menu_check(self):
         """ Menu choice """
@@ -36,7 +41,6 @@ class ConsoleUI:
 
     def show_history(self):
         self.print(winners())
-
 
     @staticmethod
     def print(message):
@@ -57,7 +61,6 @@ class GraphicUI(Tk):
         super().__init__()
         self.title("Tic-tac-toe")
         self.geometry("+500+200")
-        self.grid = GraphicGrid()
         self._setup()
 
     def _setup(self):

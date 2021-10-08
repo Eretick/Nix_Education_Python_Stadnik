@@ -3,16 +3,13 @@ import datetime
 import logging
 import random
 import sys
-from models import Person, Computer
-from views import ConsoleUI, GraphicUI
+from models import Person, Computer, Game, Grid
+from views import ConsoleUI, GraphicUI, MENU_OPTIONS
 from settings import *
 
 
-class Game:
-    """ Main game class """
-    all_points = list(range(1, 10))
-    current_player = None
-    marked_cells = []
+class TicTacToe:
+    """ Main game controller class """
 
     def __init__(self, mode="console"):
         """
@@ -20,73 +17,45 @@ class Game:
             default -> "console"
         """
         # objects defined later
-        self.menu_options = ["Начать", "Против", "История", "Выхода"]
-        self.player1 = None
-        self.player2 = None
-        self.mode = mode
-        if self.mode == "console":
+        self.game = Game(mode=mode)
+        self.ui = self.__create_ui(self.game.mode)
+        self.grid = Grid()
+
+    def __create_ui(self, mode: str="console"):
+        if mode == "console":
             self.ui = ConsoleUI()
         else:
             self.ui = GraphicUI()
-
+        return self.ui
 
     def start(self, versus=False):
         """ New game entry point """
-        self.new_game(versus=versus)
-
-    def new_game(self, versus=False):
-        """ Game reset func """
-        self.ui = ConsoleUI()
-        self.all_points = list(range(1, 10))
-        self.__create_players(versus)
-        self.marked_cells.clear()
-        self.main()
-
-    def revenge(self):
-        """ Continue playing with the same players """
-        self.ui = ConsoleUI()
-        self.all_points = list(range(1, 10))
-        self.player1.marked_cells.clear()
-        self.player2.marked_cells.clear()
-        self.marked_cells.clear()
-        self.main()
-
-    def __create_players(self, versus):
-        """ Functions for recreating players every game.
-        Depends on bool versus mode (user/user or user/AI) """
-        self.ui.print("Игрок 1:")
-        self.player1 = Person(self.__set_player_name())
-        self.player1.marked_cells.clear()
+        self.__create_ui()
+        self.game.prepare_new_game(versus=versus)
+        self.game.set_player_name(self.game.player1, self.ui.ask_name())
         if versus is True:
-            self.ui.print("Игрок 2:")
-            self.player2 = Person(self.__set_player_name())
-            self.player2.marked_cells.clear()
-        else:
-            self.player2 = Computer("Computer")
-            self.player2.all_points = list(self.all_points)
+            self.game.set_player_name(self.game.player2, self.ui.ask_name())
+        self.main()
 
     def show_menu(self):
         """ Main menu """
         self.ui.show_menu()
-        if self.mode == "console":
+        if self.game.mode == "console":
             self.menu_check(self.ui.menu_check())
 
     def menu_check(self, option):
-        if option == self.menu_options[0].lower():
-            self.new_game()
-        if option == self.menu_options[1].lower():
-            self.new_game(versus=True)
-        elif option == self.menu_options[2].lower():
+        if option == MENU_OPTIONS[0].lower():
+            self.game.prepare_new_game()
+            self.start()
+        elif option == MENU_OPTIONS[1].lower():
+            self.game.prepare_new_game(versus=True)
+            self.start(versus=True)
+        elif option == MENU_OPTIONS[2].lower():
             self.history()
-        elif option == self.menu_options[3].lower():
+        elif option == MENU_OPTIONS[3].lower():
             self._exit()
         else:
             logging.debug("No match")
-
-    def __set_player_name(self):
-        """ Person setup """
-        name = self.ui.input("Введите свое имя: ")
-        return name
 
     @staticmethod
     def __compare(var, template):
@@ -95,14 +64,14 @@ class Game:
 
     def main(self, versus=False):
         """ Main game loop """
-        self.current_player = self.__choose_first_player()
-        while not self.ui.grid.check_filled():
-            winner = self.check_win()
+        self.game.current_player = self.game.choose_first_player()
+        while not self.grid.check_filled():
+            winner = self.game.check_win()
             if winner:
                 self.ui.print(f"Победил игрок {winner.name}!")
                 self._log_results(winner)
                 break
-            if isinstance(self.current_player, Person):
+            if isinstance(self.game.current_player, Person):
                 self.show_status()
             self._next_move()
             self.__change_player()
@@ -112,23 +81,18 @@ class Game:
         self.ui.print("Реванш? (да/нет)")
         choice = self.__compare(self.ui.choice(), "да")
         if choice:
-            self.revenge()
+            self._revenge()
         self.ui.print("Выйти в меню? (да/нет)")
         choice = self.__compare(self.ui.choice(), "да")
         if choice:
             self.show_menu()
         self._exit()
 
-    def __choose_first_player(self):
-        """ Choose randomly player to make first move """
-        choice = random.randint(1, 2)
-        if choice == 1:
-            self.player1.symbol = "X"
-            self.player2.symbol = "O"
-            return self.player1
-        self.player1.symbol = "O"
-        self.player2.symbol = "X"
-        return self.player2
+    def _revenge(self):
+        self.game.prepare_new_game(self.game.mode)
+        self.grid.reset_cells()
+        self.game.revenge()
+        self.main()
 
     @staticmethod
     def _log_results(winner):
@@ -140,26 +104,26 @@ class Game:
 
     def _next_move(self):
         """ Main game players moves logic """
-        if isinstance(self.current_player, Person):
-            point = self.ui.input(f"Ход игрока {self.current_player.name} (номер ячейки):")[0]
-            move = int(self.current_player.move(point))
-        elif isinstance(self.current_player, Computer):
-            move = self.current_player.move()
-        if move in self.all_points and move not in self.marked_cells:
-            self.current_player.add_marked(move)
-            self.ui.grid.fill(move, self.current_player.symbol)
-            self.marked_cells.append(move)
+        if isinstance(self.game.current_player, Person):
+            point = self.ui.input(f"Ход игрока {self.game.current_player.name} (номер ячейки):")[0]
+            move = int(self.game.current_player.move(point))
+        elif isinstance(self.game.current_player, Computer):
+            move = self.game.current_player.move()
+        if move in self.game.all_points and move not in self.game.marked_cells:
+            self.game.current_player.add_marked(move)
+            self.grid.fill(move, self.game.current_player.symbol)
+            self.game.marked_cells.append(move)
         else:
-            if isinstance(self.current_player, Person):
+            if isinstance(self.game.current_player, Person):
                 self.ui.print(f"Нельзя походить в ячейку {move}.")
             self._next_move()
 
     def __change_player(self):
         """ Change player's move turn """
-        if self.current_player == self.player1:
-            self.current_player = self.player2
+        if self.game.current_player == self.game.player1:
+            self.game.current_player = self.game.player2
         else:
-            self.current_player = self.player1
+            self.game.current_player = self.game.player1
 
     def _exit(self):
         """ Just user-friendly console exit """
@@ -170,20 +134,12 @@ class Game:
         """ Showing all players wins history """
         self.ui.print("История побед/поражений:")
         self.ui.show_history()
-        if self.mode == "console":
+        if self.game.mode == "console":
             self.show_menu()
 
     def show_status(self):
         """ Showing current grid state """
-        self.ui.grid.show()
+        self.grid.show()
 
-    def check_win(self):
-        """ Check did player maked a line """
-        for part in WIN_COMBS:
-            part = set(part)
-            if part.issubset(set(self.player1.marked_cells)):
-                return self.player1
-            if part.issubset(set(self.player2.marked_cells)):
-                return self.player2
-        return False
+
 

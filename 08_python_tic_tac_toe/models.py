@@ -1,12 +1,12 @@
 """ Game models """
 import random
 from abc import ABC, abstractmethod
-
+from settings import WIN_COMBS
 
 class Player(ABC):
     """ Basic player class"""
 
-    def __init__(self, name):
+    def __init__(self, name=""):
         self._name = name
         # all possible cells numbers for moving. Assigned from Game.__create_players()
         self.all_points = []
@@ -24,6 +24,12 @@ class Player(ABC):
     def add_marked(self, move):
         """ Filling list of confirmed players moves """
         self.marked_cells.append(move)
+
+    def set_name(self, name:str):
+        if isinstance(name, str):
+            self._name = name
+        else:
+            raise TypeError("Player's name must be string only!")
 
 class Person(Player):
     def move(self, option):
@@ -52,7 +58,7 @@ class Computer(Player):
         return None
 
 
-class ConsoleGrid:
+class Grid:
     """ Game field class"""
 
     def __init__(self):
@@ -97,5 +103,67 @@ class ConsoleGrid:
         """ Marking the cell by player's symbol """
         self.cells[cell_number-1] = symbol
 
-class GraphicGrid:
-    pass
+    def reset_cells(self):
+        self.cells = list(range(1, 10))
+
+
+class Game:
+    marked_cells = []
+    all_points = list(range(1, 10))
+    current_player = None
+
+    def __init__(self, mode="console"):
+        self.mode = mode
+        self.player1 = None
+        self.player2 = None
+
+    def create_players(self, versus):
+        """ Functions for recreating players every game.
+        Depends on bool versus mode (user/user or user/AI) """
+        self.player1 = Person()
+        self.player1.marked_cells.clear()
+        if versus is True:
+            self.player2 = Person()
+            self.player2.marked_cells.clear()
+        else:
+            self.player2 = Computer("Computer")
+            self.player2.all_points = list(self.all_points)
+
+    def prepare_new_game(self, versus=False):
+        """ Game reset func """
+        self.all_points = list(range(1, 10))
+        self.create_players(versus)
+        self.marked_cells.clear()
+
+    @staticmethod
+    def set_player_name(player: Player, name: str):
+        """ Person setup """
+        player.set_name(name)
+
+    def choose_first_player(self):
+        """ Choose randomly player to make first move """
+        choice = random.randint(1, 2)
+        if choice == 1:
+            self.player1.symbol = "X"
+            self.player2.symbol = "O"
+            return self.player1
+        self.player1.symbol = "O"
+        self.player2.symbol = "X"
+        return self.player2
+
+    def revenge(self):
+        """ Continue playing with the same players """
+        self.all_points = list(range(1, 10))
+        self.player1.marked_cells.clear()
+        self.player2.marked_cells.clear()
+        self.marked_cells.clear()
+
+    def check_win(self):
+        """ Check did player maked a line """
+        for part in WIN_COMBS:
+            part = set(part)
+            if part.issubset(set(self.player1.marked_cells)):
+                return self.player1
+            if part.issubset(set(self.player2.marked_cells)):
+                return self.player2
+        return False
