@@ -3,6 +3,7 @@ import random
 from abc import ABC, abstractmethod
 from settings import WIN_COMBS
 
+
 class Player(ABC):
     """ Basic player class"""
 
@@ -31,10 +32,11 @@ class Player(ABC):
         else:
             raise TypeError("Player's name must be string only!")
 
+
 class Person(Player):
     def move(self, option):
         """ Simple player's move function. Returns the 1st symbol in case of mistyping"""
-        return option
+        return int(option)
 
 
 class Computer(Player):
@@ -54,8 +56,9 @@ class Computer(Player):
         move = self.__is_free(random.choice(self.all_points))
         if move not in self.marked_cells:
             return move
-        self.move()
-        return None
+        else:
+            self.move()
+            return None
 
 
 class Grid:
@@ -73,27 +76,6 @@ class Grid:
     def __setitem__(self, key, value):
         """ Adding getting by index to Grid object """
         self.cells[key] = value
-
-    @property
-    def image(self):
-        """ Console game grid autoupdated image"""
-        return f'''
-     ___________
-    |   |   |   |
-    | {self.cells[0]} | {self.cells[1]} | {self.cells[2]} |
-    |___|___|___|
-    |   |   |   |
-    | {self.cells[3]} | {self.cells[4]} | {self.cells[5]} |
-    |___|___|___|
-    |   |   |   |
-    | {self.cells[6]} | {self.cells[7]} | {self.cells[8]} |
-    |___|___|___|
-    '''
-
-    def show(self):
-        """ Viewing grid image """
-        self.filled = self.check_filled()
-        print(self.image)
 
     def check_filled(self):
         """ Returns False if Grid has a cell for move.  """

@@ -12,10 +12,13 @@ def choice():
 if __name__ == "__main__":
     option = choice()
     if option == "1":
-        game = TicTacToe("console")
+        game = TicTacToe(mode="console")
+        game.show_menu()
     elif option == "2":
-        game = TicTacToe("graphic")
+        game = TicTacToe(mode="graphic")
+        game.show_menu()
+        game.ui.mainloop()
     else:
         input("Неверный ввод!")
         sys.exit()
-    game.show_menu()
+
