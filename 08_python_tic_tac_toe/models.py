@@ -1,4 +1,4 @@
-""" Game models """
+""" This is models implementations for MVC pattern """
 import random
 from abc import ABC, abstractmethod
 from settings import WIN_COMBS
@@ -12,6 +12,7 @@ class Player(ABC):
         # all possible cells numbers for moving. Assigned from Game.__create_players()
         self.all_points = []
         self.marked_cells = []
+        self.symbol = ""
 
     @abstractmethod
     def move(self):
@@ -27,6 +28,10 @@ class Player(ABC):
         self.marked_cells.append(move)
 
     def set_name(self, name: str):
+        """ Method sets name to player instance.
+         Argument:
+            - name: str
+         """
         if isinstance(name, str):
             self._name = name
         else:
@@ -39,13 +44,15 @@ class Player(ABC):
 
 
 class Person(Player):
+    """ Player's model based on abstract Player class """
+
     def move(self, option):
         """ Simple player's move function. Returns the 1st symbol in case of mistyping"""
         return int(option)
 
 
 class Computer(Player):
-    """ AI class based on Player """
+    """ AI's model based on abstract Player class """
 
     def __init__(self, name):
         super().__init__(name)
@@ -59,12 +66,11 @@ class Computer(Player):
 
     def move(self):
         """ Computer tries to move in free cell. If cell is busy, it tries again. """
-        move = self.__is_free(random.choice(self.all_points))
+        move = self.__is_free()
         if move not in self.marked_cells:
             return move
-        else:
-            self.move()
-            return None
+        self.move()
+        return None
 
 
 class Grid:
@@ -92,10 +98,13 @@ class Grid:
         self.cells[cell_number-1] = symbol
 
     def reset_cells(self):
+        """ Reset cells grid's model cells to default state.  """
         self.cells = list(range(1, 10))
 
 
 class Game:
+    """ Game model """
+
     marked_cells = []
     all_points = list(range(1, 10))
     current_player = None

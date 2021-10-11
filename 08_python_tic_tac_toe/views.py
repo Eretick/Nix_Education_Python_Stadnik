@@ -1,3 +1,4 @@
+""" This is view implementations for MVC pattern """
 import sys
 from tkinter import Tk, Button, Label, Radiobutton, Frame, messagebox, IntVar, Entry
 import tkinter
@@ -6,6 +7,9 @@ MENU_OPTIONS = ["Начать", "Против", "История", "Выход"]
 
 
 def winners():
+    """ Function for reading winners.log
+    Returns text from file or user-friendly warning message
+    """
     with open(WINNERS_FILE, "r", encoding="utf-8") as file:
         text = file.read()
         if text != "":
@@ -14,6 +18,7 @@ def winners():
 
 
 class ConsoleUI:
+    """ View for console interface  """
     cells = range(1, 10)
 
     def __init__(self, controller):
@@ -22,20 +27,22 @@ class ConsoleUI:
 
     @staticmethod
     def print(message="", title=""):
+        """ Console ui output function """
         if title != "":
             print(title)
         print(message)
-    
+
     @staticmethod
     def input(message=""):
+        """ Console ui input function fo different choices """
         return input(message).lower()
     
     def input_move(self, user_info=""):
-        """ Only for set a move text to GUI label. 
-        The name is equal to input func in Console UI """
+        """ Console input function for player's move """
         self.controller.next_move(int(input(user_info)[0]))
 
     def show_menu(self):
+        """  Console menu show """
         self.print("---------Начать--------")
         self.print("---Друг против друга---")
         self.print("-----История побед-----")
@@ -43,6 +50,11 @@ class ConsoleUI:
         self.print("Выберите один из вариантов: начать/против/история/выход")
 
     def menu_check(self, option):
+        """ Method for interact with console menu.
+        Accept a value and compare it with MENU_OPTIONS in settings.py
+          Argument: option
+            type: str
+        """
         if option == MENU_OPTIONS[0].lower():
             self.versus = False
             self.controller.game.prepare_new_game(self.versus)
@@ -59,10 +71,17 @@ class ConsoleUI:
             print("Неверный ввод!")
 
     def show_history(self):
+        """ Method shows winners.log in console ui """
         self.print(winners())
 
     @staticmethod
     def ask_names(versus):
+        """ Method requests players name by console UI.
+        Argument:
+            versus: asking 2 names if True, else only 1st.
+            The second automatically is "Computer"
+            Returns tuple (name1, name2)
+        """
         name1 = input("Игрок 1, введите имя: ")
         name2 = "Computer"
         if versus is True:
@@ -86,15 +105,22 @@ class ConsoleUI:
     '''
     
     def sync_grid(self, cells: list):
+        """ Method replace self cells by passed from outside
+        Arguments:
+            cells: list - list of integers 1-9
+         """
         self.cells = cells
 
     def show(self):
+        """ Method shows current game grid state """
         print(self.image)
     
     def exit(self):
+        """ Exit with console ui """
         self.input("Выход из игры. Нажмите любую клавишу...")
 
     def reset_grid(self):
+        """ Restore default grid state """
         self.cells = range(1, 10)
     
     
@@ -110,7 +136,8 @@ class GraphicUI(Tk):
         self._setup()
 
     def _setup(self):
-        # ---------------------------------------Frames------------------------------------------------------------
+        """ GUI interface setup method for static elements """
+        # ---------------------------------------Frames------------------------------------
         # Main menu screen
         self.main_frame = Frame(self, bg=self.background)
         self.label_frame = Frame(self.main_frame, bg=self.background)
@@ -120,10 +147,10 @@ class GraphicUI(Tk):
         self.players_frame = Frame(self.main_frame, bg=self.background)
         # Game screen
         self.game_frame = Frame(self.main_frame, bg=self.background)
-
-        # ---------------------------------------Widgets------------------------------------------------------------
+        # ---------------------------------------Widgets------------------------------------
         # Main Label
-        self.main_label = Label(self.label_frame, text="Крестики-Нолики", font="Arial 25", bg=self.background)
+        self.main_label = Label(self.label_frame, text="Крестики-Нолики",
+                                font="Arial 25", bg=self.background)
         self.main_label.pack()
 
         # Menu
@@ -182,17 +209,20 @@ class GraphicUI(Tk):
 
         self.__lock_start_button()
         self.show_menu()
-        self.show_status()
+        self.__show_status()
 
     def __lock_p2_settings(self):
+        """ Method for locking Entry of player2 name if was chosen player vs AI game mode.
+        Also make it interactable again if was chosen player vs player game mode.
+        """
         if self.versus is False:
             self.p2_entry["state"] = "disabled"
         else:
             self.p2_entry["state"] = "normal"
 
     def __lock_start_button(self, *arg):
-        """ Func for blocking tkinter button.
-        Don't need to pass argument, cause 1 already passed dynamically with tkinter events   """
+        """ Func for blocking tkinter start game button.
+        No need to pass argument, cause 1 already passed dynamically with tkinter events   """
         print(self.versus)
         if self.versus is True and (self.p1_entry.get() == "" or self.p2_entry.get() == ""):
             self.new_game_btn["state"] = "disabled"
@@ -202,26 +232,36 @@ class GraphicUI(Tk):
             self.new_game_btn["state"] = "normal"
 
     def sync_grid(self, cells: list):
+        """ Sync game grid for GUI  """
         self._grid.cells = cells
         self._grid.update_grid()
 
     def reset_grid(self):
+        """ Restore GUI grid to origin state """
         for cell in self._grid.buttons:
             cell.reset_state()
         self._grid.update_grid()
 
     @staticmethod
     def print(title="",  message=""):
+        """ Method shows a messagebox with message.
+         For messages what need user attention. """
         messagebox.showinfo(title, message)
 
     def ask_names(self, versus=None):
+        """ Method requests players name by graphic UI.
+                Argument:
+                    versus: asking 2 names if True, else only 1st. The second automatically is "Computer"
+                    Returns tuple (name1, name2)
+                """
         name1 = self.p1_entry.get()
         name2 = "Computer"
-        if self.versus is True:
+        if versus is True:
             name2 = self.p2_entry.get()
-        return name1, name2, self.versus
+        return name1, name2
 
     def show_menu(self):
+        """ Method shows menu by GUI """
         self.__clear_frame(self.game_frame)
         self.__clear_frame(self.players_frame)
         self.menu_frame.grid()
@@ -229,44 +269,59 @@ class GraphicUI(Tk):
 
     @property
     def versus(self):
+        """ GUI instance @property of game mode """
         return bool(self.__versus.get())
 
     @staticmethod
     def __clear_frame(frame):
+        """ Internal method for hiding tkinter frames """
         frame.grid_remove()
 
     def __show_versus_choice(self):
+        """ Method for show users setup screen.
+        Binded inside instance on instance button, no need to use outside.  """
         self.__clear_frame(self.menu_frame)
         self.players_frame.grid()
         self.p1_entry.bind("<Key>", self.__lock_start_button)
         self.p2_entry.bind("<Key>", self.__lock_start_button)
 
     def show_game(self):
+        """ Method shows main game GUI with grid """
         self.controller.start(self.versus)
         self.__clear_frame(self.menu_frame)
         self.__clear_frame(self.players_frame)
         self.game_frame.grid()
 
     def input(self, status: str):
+        """ GUI implementation of the same method from console ui.
+         Render text to label above grid.
+         """
         self.status_label["text"] = status
     
     def input_move(self, status: str):
+        """ GUI implementation of the saem method from console UI.
+         Used for show notifiation ins status label which player's turn.
+         """
         self.status_label["text"] = status
 
-    def show_status(self):
+    def __show_status(self):
+        """ Internal method for showing GUI frame with status label """
         self.status_frame.grid()
 
     @staticmethod
     def show_history():
+        """ Method shows winners.log in GUI """
         text = winners()
         messagebox.showinfo("История побед", text)
 
     def exit(self):
+        """ Quit method """
         self.destroy()
         sys.exit()
 
 
-class Cell(Button):
+class GraphicCell(Button):
+    """ Custom button as part of GUI grid  """
     def __init__(self, callback, *args, **kwargs):
         super().__init__(*args, **kwargs, disabledforeground="white")
         self["width"] = 7
@@ -276,33 +331,39 @@ class Cell(Button):
         self.config(command=lambda: callback(int(self["text"])))
 
     def set_text(self, value):
+        """ Method changes self text from to value argument """
         self["text"] = value
 
     @property
     def text(self):
+        """ Readonly text @property for useful reading ["text"] instant property """
         return self["text"]
 
     @property
     def state(self):
+        """ Readonly cell current status
+        Returns tkinter.DISABLED or tkinter.NORMAL)
+        """
         return self.__state
 
     def set_active(self, bool_val):
+        """ Method changes self state depends on bool argument """
         if bool_val is False:
             self["bg"] = "gray"
             self.__state = tkinter.DISABLED
-            
         else:
             self.__state = tkinter.NORMAL
             self["bg"] = "white"
         self["state"] = self.__state
 
     def reset_state(self):
+        """ Method reset self state to default (normal)  """
         self.__state = tkinter.NORMAL
         self.set_active(self.__state)
-        print("activated")
 
 
 class GraphicGrid(Frame):
+    """ GUI game grid class, path of whole GraphicUI class """
     cells = list(range(1, 10))
 
     def __init__(self, callback, *args, **kwargs):
@@ -312,19 +373,29 @@ class GraphicGrid(Frame):
         self._create()
 
     def _create(self):
+        """ Method fills grid instance by GraphicCells  """
         number = 1
         for i in range(1, 4):
             for j in range(1, 4):
-                cell = Cell(self.callback, self, text=number, bg=self["bg"])
+                cell = GraphicCell(self.callback, self, text=number, bg=self["bg"])
                 self.buttons.append(cell)
                 cell.grid(row=i, column=j)
                 number += 1
 
     @staticmethod
     def fill(cell, text):
+        """ Method changes text of 1 passed cell to passed text.
+          Used for showing users moves
+          Arguments:
+              - cell : GraphicCell instance
+              - text : str instance
+          """
         cell.set_text(text)
 
     def update_grid(self):
+        """ Method update all GUI grids by data came from controller.
+        (earlier replaced outside as self.cells by controller)
+        """
         for index in range(9):
             cell_sign = self.cells[index]
             cell_btn = self.buttons[index]

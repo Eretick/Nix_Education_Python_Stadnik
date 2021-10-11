@@ -1,14 +1,15 @@
-""" Console Tic-tac-toe """
+""" This is controller implementations for MVC pattern """
 import datetime
 import logging
 import random
 import sys
-from models import Person, Computer, Game, Grid, Person
+from models import Person, Computer, Game, Grid
 from settings import *
 from views import GraphicUI,  ConsoleUI
 
 
 class TicTacToe:
+    """ The game controller class """
     def __init__(self, mode="console") -> None:
         self.__scores = {"user_symbol": -100,
                          "computer_symbol": 100,
@@ -47,17 +48,19 @@ class TicTacToe:
             logger.debug("%s - победил %s", date, winner.name)
 
     def reset_game(self):
+        """ Reset game models and view to origin state """
         self.grid.reset_cells()
         self.ui.reset_grid()
         self.game.prepare_new_game()
         self.__sync_grid_gui()
 
     def __exit(self):
-        """ Just user-friendly console exit """
+        """ Quit method """
         self.ui.exit()
         sys.exit()
 
     def __computer_move(self):
+        """ Move method for computer player using minimax algorithm """
         best_score = -sys.maxsize
         score, _move = self.call_minimax()
         if score > best_score:
@@ -65,15 +68,18 @@ class TicTacToe:
             return _move
 
     def fill(self, move, symbol):
+        """ Fill cell in grid model and sync it with view  """
         self.grid.fill(move, symbol)
         self.__sync_grid_gui()
 
     def show_menu(self):
+        """ Method for show menu at start or after end game"""
         self.ui.show_menu()
         if self.game.mode == "console":
             self.ui.menu_check(self.ui.input("Выберите один из вариантов меню: "))
 
     def __current_player_move(self, move):
+        """ Make player model know about change in  game """
         self.game.marked_cells.append(move)
         self.game.all_points.remove(move)
         self.game.current_player.add_marked(move)
@@ -104,6 +110,7 @@ class TicTacToe:
             self.ui.print("Игра окончена!")
 
     def check_win(self):
+        """ Check win method after every move """
         winner = self.game.check_win()
         if winner:
             self.ui.print("Победа", f"Победил игрок {winner.name}!")
@@ -127,6 +134,12 @@ class TicTacToe:
         return False
 
     def next_move(self, move=None):
+        """ Main game logic.
+        Argument:
+            move: an integer (1-9) number what means cell number to fill. Need only for player.
+            In case player - come from ui.
+            In case AI - calculated by minimax algorithm so no need to pass it.
+         """
         if isinstance(self.game.current_player, Computer):
             move = self.__computer_move()
             logging.debug(["comp 1st: ", move])
@@ -154,7 +167,6 @@ class TicTacToe:
             elif isinstance(self.game.current_player, Computer):
                 self.next_move()
                 return
-
         self.__change_player()
         if isinstance(self.game.current_player, Computer):
             self.next_move()
@@ -170,13 +182,14 @@ class TicTacToe:
             self.show_menu()
 
     def call_minimax(self):
+        """ Setup method for beginning AI move calculating """
         points = self.grid.cells.copy()
         print("points at start of minimax: ", points)
         ai_turn = isinstance(self.game.current_player, Computer)
         return self.__minimax(points, 0, ai_turn)
 
     def __minimax(self, points, depth, ai_turn):
-        """ Minimax algorhytm for computer """
+        """ Minimax algorithm for computer """
         if ai_turn is True:
             player = self.game.player2
         else:
