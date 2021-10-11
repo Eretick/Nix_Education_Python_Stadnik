@@ -1,6 +1,5 @@
 import sys
-from tkinter import Tk, Button, Label, Radiobutton, Frame, messagebox, StringVar, IntVar, Entry
-from enum import Enum
+from tkinter import Tk, Button, Label, Radiobutton, Frame, messagebox, IntVar, Entry
 import tkinter
 from settings import WINNERS_FILE, P1_SYMBOL, P2_SYMBOL
 MENU_OPTIONS = ["Начать", "Против", "История", "Выход"]
@@ -13,8 +12,10 @@ def winners():
             return text
         return "Здесь пока нет истории. Начните новую игру!"
 
+
 class ConsoleUI:
     cells = range(1, 10)
+
     def __init__(self, controller):
         self.controller = controller
         self.versus = False
@@ -70,7 +71,7 @@ class ConsoleUI:
 
     @property
     def image(self):
-        """ Console game grid autoupdated image"""
+        """ Console game grid auto updated image"""
         return f'''
      ___________
     |   |   |   |
@@ -126,16 +127,21 @@ class GraphicUI(Tk):
         self.main_label.pack()
 
         # Menu
-        self.setup_btn = Button(self.menu_frame, text="Новая игра", width=15, command=self.__show_versus_choice, bg=self.background)
-        self.log_btn = Button(self.menu_frame, text="История побед", width=15, command=self.show_history, bg=self.background)
-        self.exit_btn = Button(self.menu_frame, text="Выход", width=15, command=self.exit, bg=self.background)
+        self.setup_btn = Button(self.menu_frame, text="Новая игра", width=15,
+                                command=self.__show_versus_choice, bg=self.background)
+        self.log_btn = Button(self.menu_frame, text="История побед", width=15,
+                              command=self.show_history, bg=self.background)
+        self.exit_btn = Button(self.menu_frame, text="Выход", width=15,
+                               command=self.exit, bg=self.background)
 
         # Players
         self.__versus = IntVar()
         self.player_radio = Radiobutton(self.players_frame, text="Против игрока",
-                                        variable=self.__versus, value=1, command=self.__lock_p2_settings, bg=self.background)
+                                        variable=self.__versus, value=1,
+                                        command=self.__lock_p2_settings, bg=self.background)
         self.cpu_radio = Radiobutton(self.players_frame, text="Против компьютера",
-                                     variable=self.__versus, value=0, command=self.__lock_p2_settings, bg=self.background)
+                                     variable=self.__versus, value=0,
+                                     command=self.__lock_p2_settings, bg=self.background)
         self.player_radio.select()
         self.p1_lab = Label(self.players_frame, text="Имя игрока 1", bg=self.background)
         self.p2_lab = Label(self.players_frame, text="Имя игрока 2", bg=self.background)
@@ -170,7 +176,6 @@ class GraphicUI(Tk):
         self.new_game_btn.grid(row=3, column=0, columnspan=2, sticky="ew", padx=10, pady=5)
         self.back_btn.grid(row=4, column=0, columnspan=2, sticky="ew", padx=10, pady=5)
 
-
         # Status
         self.status_label = Label(self.status_frame, text="", bg=self.background)
         self.status_label.pack()
@@ -185,11 +190,13 @@ class GraphicUI(Tk):
         else:
             self.p2_entry["state"] = "normal"
 
-    def __lock_start_button(self, *args):
+    def __lock_start_button(self, *arg):
+        """ Func for blocking tkinter button.
+        Don't need to pass argument, cause 1 already passed dynamically with tkinter events   """
         print(self.versus)
-        if self.versus == True and (self.p1_entry.get() == "" or self.p2_entry.get() == ""):
+        if self.versus is True and (self.p1_entry.get() == "" or self.p2_entry.get() == ""):
             self.new_game_btn["state"] = "disabled"
-        elif self.versus == False and self.p1_entry.get() == "":
+        elif self.versus is False and self.p1_entry.get() == "":
             self.new_game_btn["state"] = "disabled"
         else:
             self.new_game_btn["state"] = "normal"
@@ -203,7 +210,8 @@ class GraphicUI(Tk):
             cell.reset_state()
         self._grid.update_grid()
 
-    def print(self, title="",  message=""):
+    @staticmethod
+    def print(title="",  message=""):
         messagebox.showinfo(title, message)
 
     def ask_names(self, versus=None):
@@ -278,8 +286,8 @@ class Cell(Button):
     def state(self):
         return self.__state
 
-    def set_active(self, bool):
-        if bool == False:
+    def set_active(self, bool_val):
+        if bool_val is False:
             self["bg"] = "gray"
             self.__state = tkinter.DISABLED
             
@@ -295,7 +303,8 @@ class Cell(Button):
 
 
 class GraphicGrid(Frame):
-    cells = range(1,10)
+    cells = list(range(1, 10))
+
     def __init__(self, callback, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.buttons = []
@@ -311,7 +320,8 @@ class GraphicGrid(Frame):
                 cell.grid(row=i, column=j)
                 number += 1
 
-    def fill(self, cell, text):
+    @staticmethod
+    def fill(cell, text):
         cell.set_text(text)
 
     def update_grid(self):

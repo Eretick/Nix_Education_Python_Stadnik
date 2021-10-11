@@ -26,11 +26,16 @@ class Player(ABC):
         """ Filling list of confirmed players moves """
         self.marked_cells.append(move)
 
-    def set_name(self, name:str):
+    def set_name(self, name: str):
         if isinstance(name, str):
             self._name = name
         else:
             raise TypeError("Player's name must be string only!")
+
+    def remove_from_all(self, move):
+        """ Remove maked move from all available moves """
+        if move in self.all_points:
+            self.all_points.remove(move)
 
 
 class Person(Player):
@@ -41,14 +46,15 @@ class Person(Player):
 
 class Computer(Player):
     """ AI class based on Player """
-    GOOD_POINTS = [1, 3, 7, 9, 5]
 
     def __init__(self, name):
         super().__init__(name)
         self.marked_cells = []  # convert inherited class variable marked_cells to instance variable
 
-    def __is_free(self, point):
-        """ Finding free cell internal algoritm  """
+    def __is_free(self):
+        """ Internal algoritm of finding free cell.
+        Outdated after adding MINIMAX algorythm. Keep cause of "out of nostalgic feelings" :D
+        """
         return random.choice(self.all_points)
 
     def move(self):
@@ -103,9 +109,11 @@ class Game:
         """ Functions for recreating players every game.
         Depends on bool versus mode (user/user or user/AI) """
         self.player1 = Person()
+        self.player1.all_points = self.all_points
         self.player1.marked_cells.clear()
         if versus is True:
             self.player2 = Person()
+            self.player2.all_points = self.all_points
             self.player2.marked_cells.clear()
         else:
             self.player2 = Computer("Computer")
@@ -118,7 +126,7 @@ class Game:
         self.marked_cells.clear()
 
     @staticmethod
-    def set_player_name(player: Player, name: str):
+    def set_player_name(player: Person, name: str):
         """ Person setup """
         player.set_name(name)
 
