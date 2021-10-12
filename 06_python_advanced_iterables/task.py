@@ -38,10 +38,12 @@ Errors:
         """ Method checks if the sentence is full and it's only one. """
         self.__check_full_sentence()
         # deleting empty strings after multiple splits
-        sentence = [i.strip() for i in re.split(self.__re_splitters, self.string) if i != '']
-        if len(sentence) > 1:
+        sentence_list = [i.strip() for i in re.split(self.__re_splitters, self.string) if i != '']
+        if len(sentence_list) > 1:
             raise MultipleSentencesError("Must be only one sentence")
-        return sentence[0]
+        first_sentence = sentence_list[0]
+        # Adding to first sentence clipped ending symbol
+        return first_sentence + self.string[len(first_sentence)]
 
     def _words(self):
         """ Internal method for words property """
@@ -50,7 +52,10 @@ Errors:
     @property
     def words(self):
         """ Getting words from iterator """
-        words_list = list(iter(self._words()))
+        iterator = iter(self._words())
+        words_list = []
+        for i in iterator:
+            words_list.append(i)
         return words_list
 
     @property
@@ -92,6 +97,7 @@ class SentenceIterator:
             index = self.words_count - self._remains
             self._remains -= 1
             return self.__get_word(*self.__words_indexes[index])
+
         raise StopIteration
 
     def __iter__(self):
@@ -123,10 +129,14 @@ class SentenceIterator:
                 # if new word begun
                 if self.__scheme[index-1] == self.__sign_symbol and self.__scheme[index] == self.__word_symbol:
                     word_start = index
+
                 # if word ends
                 if self.__scheme[index - 1] == self.__word_symbol:
                     if self.__scheme[index] == self.__sign_symbol:
                         word_end = index-1
+                        indexes.append([word_start, word_end])
+                    if self.__scheme[index] == self.__word_symbol and index == len(self.__scheme):
+                        word_end = index
                         indexes.append([word_start, word_end])
         self.__words_indexes = indexes
 
