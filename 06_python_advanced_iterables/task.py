@@ -23,11 +23,10 @@ Errors:
         self.__re_splitters = f'[{"".join(SPLITTERS)}]'
         if not isinstance(self.string, str):
             raise TypeError('The Sentence class can work only with string!')
-        self.__other_chars = []
         self._words_count = 0
 
     def __repr__(self):
-        return f'<Sentence(words={len(self.words)}, other_chars={self.__other_chars})>'
+        return f'<Sentence(words={len(self.words)}, other_chars={self.other_chars})>'
 
     def __check_full_sentence(self):
         """ Internal method for check if sentence is complete.
@@ -44,23 +43,21 @@ Errors:
             raise MultipleSentencesError("Must be only one sentence")
         return sentence[0]
 
-
-
     def _words(self):
+        """ Internal method for words property """
         return SentenceIterator(self.__get_sentence())
 
     @property
     def words(self):
         """ Getting words from iterator """
-        iterator = self._words()
-        words_list = list(iter(iterator))
+        words_list = list(iter(self._words()))
         return words_list
 
     @property
     def other_chars(self):
         """ Property function which returns non-letters chars in sentence. """
         # return list(set(self.__other_chars))
-        return
+        return self._words().get_symbols()
 
     def __getitem__(self, item):
         """ Support indexes """
@@ -68,32 +65,26 @@ Errors:
 
 
 class SentenceIterator:
-
     """ Iterator for Sentence class"""
-    def __init__(self, sentence: str, lenght=None):
+
+    def __init__(self, sentence: str):
         self.sentence = sentence  # original sentence
-        self.__sentence = ""  # internal variable to work with
         self.__word_symbol = "w"
         self.__sign_symbol = "s"
         self.__scheme = ""
-        self.__create_scheme()  #  schematic view of sentence
+        self.__create_scheme()  # schematic view of sentence
         self.__words_indexes = []  # list of indexes of every word
         self.__chars_indexes = []  # list of indexes of not-word chars
         self.other_chars = []  # list of non-text-symbol chars
         self._min = 0
         self.__words_count = self.__count_words()
-        self._sen_max = len(self.__sentence)
-        self._remains = lenght if lenght is not None else self.__words_count
+        self._remains = self.__words_count
 
     def __count_words(self):
-        """ Internal method, uses created schema to find and save to self.__indexes all words indexes.
+        """ Internal method, uses created schema to find and save to all words indexes.
         Return words count """
         self.__get_indexes()
         return len(self.__words_indexes)
-
-    @property
-    def words_count(self):
-        return self.__count_words()
 
     def __next__(self):
         """ The main iterator logic """
@@ -116,11 +107,14 @@ class SentenceIterator:
 
     def __get_indexes(self):
         """ Algorithm for creating list of words limits indexes """
-
         indexes = []
         word_start = 0
         word_end = 0
-        for index in range(len(self.__scheme)):
+        for index, _ in enumerate(self.__scheme):
+            # filling symbols index list
+            if self.__scheme[index] == self.__sign_symbol:
+                self.__chars_indexes.append(self.__scheme[index])
+            # filling words index list
             # beginning of sentence scheme
             if index == 0:
                 word_start = index
@@ -134,7 +128,6 @@ class SentenceIterator:
                     if self.__scheme[index] == self.__sign_symbol:
                         word_end = index-1
                         indexes.append([word_start, word_end])
-
         self.__words_indexes = indexes
 
     def __get_word(self, index_start, index_end):
@@ -143,7 +136,15 @@ class SentenceIterator:
             self.__get_indexes()
         return self.sentence[index_start:index_end+1]
 
+    @property
+    def words_count(self):
+        """ Read-only property, returns words count in sentence. """
+        return self.__count_words()
 
+    def get_symbols(self):
+        """ Func returns all used symbols in sentence """
+        symbols = [self.sentence[i] for i in range(len(self.__scheme)) if self.__scheme[i] == self.__sign_symbol]
+        return list(set(symbols))
 
 
 
