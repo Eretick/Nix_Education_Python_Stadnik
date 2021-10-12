@@ -1,6 +1,9 @@
 """ Python iterator task """
 import re
 
+WORDS_SPLITTERS = [',', '\'', '\"', ";", ":", "-", " "]
+SPLITTERS = (".", "!", "?", "...")
+
 class MultipleSentencesError(UserWarning):
     """ Custom warning for Sentence class """
 
@@ -17,23 +20,23 @@ Errors:
      """
     def __init__(self, string):
         self.string = string
-        self.splitters = (".", "!", "?", "...")
-        self.__re_splitters = f'[{"".join(self.splitters)}]'
+        self.__re_splitters = f'[{"".join(SPLITTERS)}]'
         if not isinstance(self.string, str):
             raise TypeError('The Sentence class can work only with string!')
-        self.words_splitters = [',', '\'', '\"', ";", ":", "-", " "]
         self.__other_chars = []
         self._words_count = 0
-        self.__sentence = ""
 
     def __repr__(self):
-        return f'<Sentence(words={len(self.words)}, other_chars={self.__get_symbols()})>'
+        return f'<Sentence(words={len(self.words)}, other_chars={self.__other_chars})>'
 
     def __check_full_sentence(self):
-        if not self.string.endswith(self.splitters):
+        """ Internal method for check if sentence is complete.
+         Raise ValueError if not."""
+        if not self.string.endswith(SPLITTERS):
             raise ValueError("The sentence must be finished!")
 
     def __get_sentence(self):
+        """ Method checks if the sentence is full and it's only one. """
         self.__check_full_sentence()
         # deleting empty strings after multiple splits
         sentence = [i.strip() for i in re.split(self.__re_splitters, self.string) if i != '']
@@ -41,40 +44,23 @@ Errors:
             raise MultipleSentencesError("Must be only one sentence")
         return sentence[0]
 
-    def __sentence_to_list(self):
-        self.__get_symbols(replace=True)
-        return self.__sentence.split()
+
 
     def _words(self):
-        return SentenceIterator(self.__sentence_to_list())
+        return SentenceIterator(self.__get_sentence())
 
     @property
     def words(self):
         """ Getting words from iterator """
-        words_list = list(iter(self._words()))
-        self._words_count = len(words_list)
+        iterator = self._words()
+        words_list = list(iter(iterator))
         return words_list
 
     @property
     def other_chars(self):
         """ Property function which returns non-letters chars in sentence. """
-        return list(set(self.__other_chars))
-
-    def __get_symbols(self, replace=False):
-        """ Internal method for finding all non-letters chars in sentence.
-        If replace=True, removes all chars from sentence for correct words splitting.
-        No need to use from outside.
-        """
-        counter = 0
-        self.__sentence = self.__get_sentence()
-        self.__other_chars.clear()
-        for symbol in self.__sentence:
-            if symbol in self.words_splitters:
-                counter += 1
-                self.__other_chars.append(symbol)
-                if replace:
-                    self.__sentence = self.__sentence.replace(symbol, " ")
-        return counter
+        # return list(set(self.__other_chars))
+        return
 
     def __getitem__(self, item):
         """ Support indexes """
@@ -82,22 +68,83 @@ Errors:
 
 
 class SentenceIterator:
+
     """ Iterator for Sentence class"""
-    def __init__(self, sentence:list, lenght=None):
-        self.sentence = sentence
+    def __init__(self, sentence: str, lenght=None):
+        self.sentence = sentence  # original sentence
+        self.__sentence = ""  # internal variable to work with
+        self.__word_symbol = "w"
+        self.__sign_symbol = "s"
+        self.__scheme = ""
+        self.__create_scheme()  #  schematic view of sentence
+        self.__words_indexes = []  # list of indexes of every word
+        self.__chars_indexes = []  # list of indexes of not-word chars
+        self.other_chars = []  # list of non-text-symbol chars
         self._min = 0
-        self._max = len(sentence)
-        self._remains = lenght if lenght is not None else self._max
+        self.__words_count = self.__count_words()
+        self._sen_max = len(self.__sentence)
+        self._remains = lenght if lenght is not None else self.__words_count
+
+    def __count_words(self):
+        """ Internal method, uses created schema to find and save to self.__indexes all words indexes.
+        Return words count """
+        self.__get_indexes()
+        return len(self.__words_indexes)
+
+    @property
+    def words_count(self):
+        return self.__count_words()
 
     def __next__(self):
         """ The main iterator logic """
         if self._remains > 0:
+            index = self.words_count - self._remains
             self._remains -= 1
-            return self.sentence[self._max - self._remains - 1]
+            return self.__get_word(*self.__words_indexes[index])
         raise StopIteration
 
     def __iter__(self):
         return self
+
+    def __create_scheme(self):
+        """ Create sign-scheme of sentence  """
+        for symbol in self.sentence:
+            if symbol not in SPLITTERS and symbol not in WORDS_SPLITTERS:
+                self.__scheme += self.__word_symbol
+            else:
+                self.__scheme += self.__sign_symbol
+
+    def __get_indexes(self):
+        """ Algorithm for creating list of words limits indexes """
+
+        indexes = []
+        word_start = 0
+        word_end = 0
+        for index in range(len(self.__scheme)):
+            # beginning of sentence scheme
+            if index == 0:
+                word_start = index
+            # rest part
+            elif index != 0 and index <= len(self.__scheme):
+                # if new word begun
+                if self.__scheme[index-1] == self.__sign_symbol and self.__scheme[index] == self.__word_symbol:
+                    word_start = index
+                # if word ends
+                if self.__scheme[index - 1] == self.__word_symbol:
+                    if self.__scheme[index] == self.__sign_symbol:
+                        word_end = index-1
+                        indexes.append([word_start, word_end])
+
+        self.__words_indexes = indexes
+
+    def __get_word(self, index_start, index_end):
+        """ Getting a word from prepared scheme by indexes """
+        if len(self.__words_indexes) == 0:
+            self.__get_indexes()
+        return self.sentence[index_start:index_end+1]
+
+
+
 
 
 if __name__ == "__main__":
