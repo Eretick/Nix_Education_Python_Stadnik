@@ -78,26 +78,21 @@ class SentenceIterator:
         self.__sign_symbol = "s"
         self.__scheme = ""
         self.__create_scheme()  # schematic view of sentence
-        self.__words_indexes = []  # list of indexes of every word
-        self.__chars_indexes = []  # list of indexes of not-word chars
-        self.other_chars = []  # list of non-text-symbol chars
         self._min = 0
-        self.__words_count = self.__count_words()
-        self._remains = self.__words_count
+        self._remains = self.count_words()
 
-    def __count_words(self):
+    def count_words(self):
         """ Internal method, uses created schema to find and save to all words indexes.
         Return words count """
-        self.__get_indexes()
-        return len(self.__words_indexes)
+        indexes = self.__get_words_indexes()
+        return len(indexes)
 
     def __next__(self):
         """ The main iterator logic """
         if self._remains > 0:
             index = self.words_count - self._remains
             self._remains -= 1
-            return self.__get_word(*self.__words_indexes[index])
-
+            return self.__get_word(*self.__get_words_indexes()[index])
         raise StopIteration
 
     def __iter__(self):
@@ -111,15 +106,20 @@ class SentenceIterator:
             else:
                 self.__scheme += self.__sign_symbol
 
-    def __get_indexes(self):
+    def __get_sings_indexes(self):
+        """ Get all sings indexes  """
+        indexes = []
+        for index, _ in enumerate(self.__scheme):
+            if self.__scheme[index] == self.__sign_symbol:
+                indexes.append(index)
+        return indexes
+
+    def __get_words_indexes(self):
         """ Algorithm for creating list of words limits indexes """
         indexes = []
         word_start = 0
         word_end = 0
         for index, _ in enumerate(self.__scheme):
-            # filling symbols index list
-            if self.__scheme[index] == self.__sign_symbol:
-                self.__chars_indexes.append(self.__scheme[index])
             # filling words index list
             # beginning of sentence scheme
             if index == 0:
@@ -138,22 +138,22 @@ class SentenceIterator:
                     if self.__scheme[index] == self.__word_symbol and index == len(self.__scheme):
                         word_end = index
                         indexes.append([word_start, word_end])
-        self.__words_indexes = indexes
+        return indexes
 
     def __get_word(self, index_start, index_end):
         """ Getting a word from prepared scheme by indexes """
-        if len(self.__words_indexes) == 0:
-            self.__get_indexes()
+        if len(self.__get_words_indexes()) == 0:
+            self.__get_words_indexes()
         return self.sentence[index_start:index_end+1]
 
     @property
     def words_count(self):
         """ Read-only property, returns words count in sentence. """
-        return self.__count_words()
+        return self.count_words()
 
     def get_symbols(self):
         """ Func returns all used symbols in sentence """
-        symbols = [self.sentence[i] for i in range(len(self.__scheme)) if self.__scheme[i] == self.__sign_symbol]
+        symbols = [self.sentence[i] for i in self.__get_sings_indexes() if self.__scheme[i] == self.__sign_symbol]
         return list(set(symbols))
 
 
