@@ -45,7 +45,7 @@ class TicTacToe:
         """ Creating winner logs to WINNERS_FILE document """
         if isinstance(winner, Person):
             date = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-            logger.debug("%s - победил %s", date, winner.name)
+            logger.debug("%s - %s has won", date, winner.name)
 
     def reset_game(self):
         """ Reset game models and view to origin state """
@@ -76,7 +76,7 @@ class TicTacToe:
         """ Method for show menu at start or after end game"""
         self.ui.show_menu()
         if self.game.mode == "console":
-            self.ui.menu_check(self.ui.input("Выберите один из вариантов меню: "))
+            self.ui.menu_check(self.ui.input("Choose 1 of menu options: "))
 
     def __current_player_move(self, move):
         """ Make player model know about change in  game """
@@ -100,25 +100,25 @@ class TicTacToe:
         """ Main game loop """
         if not self.grid.check_filled():
             self.__show_status()
-            # The first move at game beginning, all nexts moves by self.next_move() called from ui
+            # The first move at game beginning, all next moves by self.next_move() called from ui
             if self.game.mode == "console":
                 if isinstance(self.game.current_player, Person):
-                    self.ui.input_move(f"Ход игрока {self.game.current_player.name}: ")
+                    self.ui.input_move(f"Now {self.game.current_player.name} turn: ")
                 else:
                     self.next_move()
         else:
-            self.ui.print("Игра окончена!")
+            self.ui.print("Game over!")
 
     def check_win(self):
         """ Check win method after every move """
         winner = self.game.check_win()
         if winner:
-            self.ui.print("Победа", f"Победил игрок {winner.name}!")
+            self.ui.print("Victory!", f"{winner.name} has won!")
             self.__log_results(winner)
             if self.game.mode == "console":
-                self.ui.print("Выйти в меню? (да/нет)")
+                self.ui.print("Back to menu? (yes/no) - 'no' for exit.")
                 choice = self.ui.input()
-                if choice == "да":
+                if choice == "yes":
                     self.show_menu()
                     return
                 else:
@@ -127,7 +127,15 @@ class TicTacToe:
             self.reset_game()
             return True
         elif self.grid.check_filled():
-            self.ui.print(message=f"Ничья")
+            self.ui.print(message=f"Draw game!")
+            if self.game.mode == "console":
+                self.ui.print("Back to menu? (yes/no) - 'no' for exit.")
+                choice = self.ui.input()
+                if choice == "yes":
+                    self.show_menu()
+                    return
+                else:
+                    self.__exit()
             self.ui.show_menu()
             self.reset_game()
             return True
@@ -148,9 +156,7 @@ class TicTacToe:
             if move not in self.game.marked_cells and move not in self.game.current_player.marked_cells:
                 self.__current_player_move(move)
                 self.fill(move, self.game.current_player.symbol)
-
                 winner = self.check_win()
-
                 if not winner and self.game.mode == "console":
                     self.ui.show()
             else:
@@ -161,9 +167,9 @@ class TicTacToe:
                     self.game.current_player.move()
         else:
             #  in case if we wrote wrong number in console
-            self.ui.print(f"Неверный ввод '{move}'!")
+            self.ui.print(f"Wrong input '{move}'!")
             if self.game.mode == "console" and isinstance(self.game.current_player, Person):
-                self.next_move(self.ui.input_move(f"Ход игрока {self.game.current_player.name}: "))
+                self.next_move(self.ui.input_move(f"Now {self.game.current_player.name} turn: "))
             elif isinstance(self.game.current_player, Computer):
                 self.next_move()
                 return
@@ -176,7 +182,7 @@ class TicTacToe:
 
     def history(self):
         """ Showing all players wins history """
-        self.ui.print("История побед/поражений:")
+        self.ui.print("Winners history:")
         self.ui.show_history()
         if self.game.mode == "console":
             self.show_menu()
@@ -184,7 +190,6 @@ class TicTacToe:
     def call_minimax(self):
         """ Setup method for beginning AI move calculating """
         points = self.grid.cells.copy()
-        print("points at start of minimax: ", points)
         ai_turn = isinstance(self.game.current_player, Computer)
         return self.__minimax(points, 0, ai_turn)
 

@@ -3,10 +3,10 @@ import sys
 from controllers import TicTacToe
 
 def choice():
-    print("""Какую версию игры запустить?
-    1 - Консольная игра
-    2 - С графическим интерфейсом""")
-    return input("Ваш выбор: ")
+    print("""Which variant of game you want to play?
+    1 - Console game.
+    2 - Graphic game.""")
+    return input("Your choice (number only): ")
 
 
 if __name__ == "__main__":
@@ -19,6 +19,6 @@ if __name__ == "__main__":
         game.show_menu()
         game.ui.mainloop()
     else:
-        input("Неверный ввод!")
+        input("Wrong input!")
         sys.exit()
 

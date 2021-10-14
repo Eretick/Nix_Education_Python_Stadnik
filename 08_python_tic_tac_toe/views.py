@@ -3,7 +3,7 @@ import sys
 from tkinter import Tk, Button, Label, Radiobutton, Frame, messagebox, IntVar, Entry
 import tkinter
 from settings import WINNERS_FILE, P1_SYMBOL, P2_SYMBOL
-MENU_OPTIONS = ["Начать", "Против", "История", "Выход"]
+MENU_OPTIONS = ["Start", "Versus", "History", "Exit"]
 
 
 def winners():
@@ -14,7 +14,7 @@ def winners():
         text = file.read()
         if text != "":
             return text
-        return "Здесь пока нет истории. Начните новую игру!"
+        return "Win history is empty. Please start new game!"
 
 
 class ConsoleUI:
@@ -43,16 +43,16 @@ class ConsoleUI:
 
     def show_menu(self):
         """  Console menu show """
-        self.print("---------Начать--------")
-        self.print("---Друг против друга---")
-        self.print("-----История побед-----")
-        self.print("---------Выход---------")
-        self.print("Выберите один из вариантов: начать/против/история/выход")
+        self.print("---------Start Player vs CPU--------")
+        self.print("-----Start Player vs Player game----")
+        self.print("-----------Winners history----------")
+        self.print("-----------------Exit---------------")
+        self.print("Choose one option: start/versus/history/exit")
 
     def menu_check(self, option):
         """ Method for interact with console menu.
         Accept a value and compare it with MENU_OPTIONS in settings.py
-          Argument: option
+        Argument: option
             type: str
         """
         if option == MENU_OPTIONS[0].lower():
@@ -66,7 +66,7 @@ class ConsoleUI:
         elif option == MENU_OPTIONS[2].lower():
             self.controller.history()
         elif option == MENU_OPTIONS[3].lower():
-            self.controller.__exit()
+            self.exit()
         else:
             print("Неверный ввод!")
 
@@ -82,10 +82,10 @@ class ConsoleUI:
             The second automatically is "Computer"
             Returns tuple (name1, name2)
         """
-        name1 = input("Игрок 1, введите имя: ")
+        name1 = input("Player 1, please enter your name: ")
         name2 = "Computer"
         if versus is True:
-            name2 = input("Игрок 2, введите имя: ")
+            name2 = input("Player 2, please enter your name: ")
         return name1, name2
 
     @property
@@ -117,7 +117,7 @@ class ConsoleUI:
     
     def exit(self):
         """ Exit with console ui """
-        self.input("Выход из игры. Нажмите любую клавишу...")
+        self.input("Leaving the game. Press any key...")
 
     def reset_grid(self):
         """ Restore default grid state """
@@ -149,38 +149,38 @@ class GraphicUI(Tk):
         self.game_frame = Frame(self.main_frame, bg=self.background)
         # ---------------------------------------Widgets------------------------------------
         # Main Label
-        self.main_label = Label(self.label_frame, text="Крестики-Нолики",
+        self.main_label = Label(self.label_frame, text="TIC-TAC-TOE",
                                 font="Arial 25", bg=self.background)
         self.main_label.pack()
 
         # Menu
-        self.setup_btn = Button(self.menu_frame, text="Новая игра", width=15,
+        self.setup_btn = Button(self.menu_frame, text="New game", width=15,
                                 command=self.__show_versus_choice, bg=self.background)
-        self.log_btn = Button(self.menu_frame, text="История побед", width=15,
+        self.log_btn = Button(self.menu_frame, text="Winners history", width=15,
                               command=self.show_history, bg=self.background)
-        self.exit_btn = Button(self.menu_frame, text="Выход", width=15,
+        self.exit_btn = Button(self.menu_frame, text="Exit", width=15,
                                command=self.exit, bg=self.background)
 
         # Players
         self.__versus = IntVar()
-        self.player_radio = Radiobutton(self.players_frame, text="Против игрока",
+        self.player_radio = Radiobutton(self.players_frame, text="Player vs Player",
                                         variable=self.__versus, value=1,
                                         command=self.__lock_p2_settings, bg=self.background)
-        self.cpu_radio = Radiobutton(self.players_frame, text="Против компьютера",
+        self.cpu_radio = Radiobutton(self.players_frame, text="Player vs CPU",
                                      variable=self.__versus, value=0,
                                      command=self.__lock_p2_settings, bg=self.background)
         self.player_radio.select()
-        self.p1_lab = Label(self.players_frame, text="Имя игрока 1", bg=self.background)
-        self.p2_lab = Label(self.players_frame, text="Имя игрока 2", bg=self.background)
+        self.p1_lab = Label(self.players_frame, text="P1 name:", bg=self.background)
+        self.p2_lab = Label(self.players_frame, text="P2 name:", bg=self.background)
         self.p1_entry = Entry(self.players_frame, width=17)
         self.p2_entry = Entry(self.players_frame, width=17)
-        self.new_game_btn = Button(self.players_frame, text="Начать игру", command=self.show_game, bg=self.background)
-        self.back_btn = Button(self.players_frame, text="Назад", command=self.show_menu, bg=self.background)
+        self.new_game_btn = Button(self.players_frame, text="New game", command=self.show_game, bg=self.background)
+        self.back_btn = Button(self.players_frame, text="Back", command=self.show_menu, bg=self.background)
 
         # Game
         self._grid = GraphicGrid(self.controller.next_move, self.game_frame, bg=self.background)
         self._grid.grid(row=1, column=0)
-        self.menu_btn = Button(self.game_frame, text="В меню", command=self.show_menu, bg=self.background)
+        self.menu_btn = Button(self.game_frame, text="Back", command=self.show_menu, bg=self.background)
         self.menu_btn.grid(row=2, column=0)
 
         # Frame packing
@@ -262,10 +262,14 @@ class GraphicUI(Tk):
 
     def show_menu(self):
         """ Method shows menu by GUI """
+        # rebind lock start button methods and bind enter taboo cause of names entries still lists inputs
+        self.p1_entry.bind("<Key>", self.lock_entry)
+        self.p2_entry.bind("<Key>", self.lock_entry)
+
         self.__clear_frame(self.game_frame)
         self.__clear_frame(self.players_frame)
         self.menu_frame.grid()
-        self.input("Выберите один из вариантов")
+        self.input("Choose one of available options")
 
     @property
     def versus(self):
@@ -285,8 +289,15 @@ class GraphicUI(Tk):
         self.p1_entry.bind("<Key>", self.__lock_start_button)
         self.p2_entry.bind("<Key>", self.__lock_start_button)
 
+    def lock_entry(self, event):
+            return "break"
+
     def show_game(self):
         """ Method shows main game GUI with grid """
+        # rebind lock start button methods and bind enter taboo cause of names entries still lists inputs
+        self.p1_entry.bind("<Key>", self.lock_entry)
+        self.p2_entry.bind("<Key>", self.lock_entry)
+
         self.controller.start(self.versus)
         self.__clear_frame(self.menu_frame)
         self.__clear_frame(self.players_frame)
@@ -312,12 +323,11 @@ class GraphicUI(Tk):
     def show_history():
         """ Method shows winners.log in GUI """
         text = winners()
-        messagebox.showinfo("История побед", text)
+        messagebox.showinfo("Winners history", text)
 
     def exit(self):
         """ Quit method """
         self.destroy()
-        sys.exit()
 
 
 class GraphicCell(Button):
