@@ -37,9 +37,11 @@ def binary_search(data: list, search_item):
             data_copy = data[cur_start:cur_end]
     return index
 
-def quick_sort(data:list):
-    """ Implementation of quick sort algorhitm
+def quick_sort_recursive(data:list):
+    """ Recursive implementation of quick sort algorhitm
      :data - list of unsorted values
+     Yes, I know. It's not a part of task. But I maded it already, so let it be for me here for future me :D
+     Anyway, I remade this function with iterative style to, look for quick_sort_iterative()  
      """
     if len(data) > 0:
         last_index = len(data)-1
@@ -63,11 +65,37 @@ def quick_sort(data:list):
                 right_sorted.append(True)
 
         if len(left_sorted) != len(data_left):
-            data_left = quick_sort(data_left)
+            data_left = quick_sort_recursive(data_left)
         if len(right_sorted) != len(data_right):
-            data_right = quick_sort(data_right)
+            data_right = quick_sort_recursive(data_right)
         result = data_left + [last_item]+ data_right
         return result
+
+
+def quick_sort_iterative(data:list):
+    """ Non-recursive implementation of quicksort """
+    if len(data) > 0:
+        last_index = len(data) - 1
+        new_data = data.copy()
+        last_item = new_data[last_index]
+        while new_data != sorted(data):
+            last_index = len(data) - 1
+            while last_index > 0:
+                i = -1
+                j = 0
+                for j in range(last_index):
+                    cur_element = new_data[j]
+                    print("Current:", cur_element, "Last:", last_item)
+                    if cur_element < last_item:
+                        i += 1
+                        print("Switch", new_data[i], "and", new_data[j])
+                        new_data[i], new_data[j] = new_data[j], new_data[i]
+                else:
+                    if new_data[j] > new_data[last_index]:
+                        new_data[j], new_data[last_index] = new_data[last_index], new_data[j]
+                last_index -= 1
+        return new_data
+
 
 def my_factorial(number):
     """ Recursive factorial implementation """
