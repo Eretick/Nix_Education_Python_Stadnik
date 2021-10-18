@@ -42,3 +42,4 @@ def test_factorial_negative(input):
     from math import factorial
     with pytest.raises(ValueError):
         assert my_factorial(input) == math.factorial(input), "Error in factorial function. Wrong result."
+
