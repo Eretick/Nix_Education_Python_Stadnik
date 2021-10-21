@@ -1,7 +1,7 @@
 __pycache__/
 # Environments
 .idea
-.env
+03_databeses/13_practice_2.0/.env
 .venv
 env/
 venv/
