@@ -1,0 +1,2 @@
+ALTER TABLE users ADD COLUMN phone_number INTEGER;
+ALTER TABLE users ALTER COLUMN phone_number TYPE VARCHAR;
