@@ -1,0 +1,13 @@
+# This is begin console command for docker
+sudo docker-compose --env-file .env up -d
+sudo docker cp ./task_data/. 14_practice_21_db_1:/usr/src/task-data
+sudo docker cp task1_1-3.sql 14_practice_21_db_1:/usr/src/task1_1-3.sql
+sudo docker cp task1_4.sql 14_practice_21_db_1:/usr/src/task1_4.sql
+sudo docker cp task2.sql 14_practice_21_db_1:/usr/src/task2.sql
+sudo docker cp task3.sql 14_practice_21_db_1:/usr/src/task3.sql
+sudo docker-compose --env-file .env exec db psql -U postgres -c "DROP DATABASE IF EXISTS shop;"
+sudo docker-compose --env-file .env exec db psql -U postgres -c "CREATE DATABASE shop;"
+sudo docker-compose --env-file .env exec db psql -U postgres -d shop -f /usr/src/task1_1-3.sql
+sudo docker-compose --env-file .env exec db psql -U postgres -d shop -f /usr/src/task1_4.sql
+sudo docker-compose --env-file .env exec db psql -U postgres -d shop -f /usr/src/task2.sql
+sudo docker-compose --env-file .env exec db psql -U postgres -d shop -f /usr/src/task3.sql
