@@ -1,0 +1,1 @@
+SELECT * FROM "order" WHERE order_status_order_status_id=3;
