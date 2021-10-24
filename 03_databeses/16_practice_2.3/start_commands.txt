@@ -1,0 +1,6 @@
+# This is start for  console commands for docker
+# Docker image should run from 14_practice_2.1
+sudo docker cp ../16_practice_2.3/potential_customers.csv 14_practice_21_db_1:/usr/src/potential_customers.csv
+sudo docker cp ../16_practice_2.3/task2_3-1.sql 14_practice_21_db_1:/usr/src/task2_3-1.sql
+sudo docker-compose --env-file .env exec db psql -U postgres -d shop -f /usr/src/task2_3-1.sql
+
