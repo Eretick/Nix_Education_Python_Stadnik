@@ -89,9 +89,13 @@ class Grid:
         """ Adding getting by index to Grid object """
         self.cells[key] = value
 
-    def check_filled(self):
+    def check_filled(self, tactics=None):
         """ Returns False if Grid has a cell for move.  """
-        return not any(list(str(x).isdigit() for x in self.cells))
+        if tactics is None:
+            cells = self.cells
+        else:
+            cells = tactics["grid"]
+        return not any(list(str(x).isdigit() for x in cells))
 
     def fill(self, cell_number, symbol):
         """ Marking the cell by player's symbol """
@@ -157,12 +161,22 @@ class Game:
         self.player2.marked_cells.clear()
         self.marked_cells.clear()
 
-    def check_win(self):
+    def check_win(self, tactics: dict = None):
         """ Check did player maked a line """
         for part in WIN_COMBS:
             part = set(part)
-            if part.issubset(set(self.player1.marked_cells)):
-                return self.player1
-            if part.issubset(set(self.player2.marked_cells)):
-                return self.player2
+            if tactics is None:
+                if part.issubset(set(self.player1.marked_cells)):
+                    return self.player1
+                if part.issubset(set(self.player2.marked_cells)):
+                    return self.player2
+            else:
+                if isinstance(tactics, dict):
+                    grid = tactics["grid"]
+                    player = tactics["player"]
+                    grid_part = [grid[i-1] for i in part]
+                    if all(player.symbol == i for i in grid_part):
+                        return player
+                else:
+                    raise TypeError("tactics argument must be a dict!")
         return False

@@ -6,14 +6,16 @@ import sys
 from models import Person, Computer, Game, Grid
 from settings import *
 from views import GraphicUI,  ConsoleUI
+from math import inf as infinity, ceil
 
+m_c = 0
 
 class TicTacToe:
     """ The game controller class """
     def __init__(self, mode="console") -> None:
         self.__scores = {"user_symbol": -100,
                          "computer_symbol": 100,
-                         "draw": "-"}
+                         "draw": 0}
         self.mode = mode
         self.grid = Grid()
         self.ui = self.__create_ui(self.mode)
@@ -61,11 +63,14 @@ class TicTacToe:
 
     def __computer_move(self):
         """ Move method for computer player using minimax algorithm """
-        best_score = -sys.maxsize
-        score, _move = self.call_minimax()
-        if score > best_score:
-            best_score = score
-            return _move
+        points = self.grid.cells.copy()
+        depth = len([i for i in points if str(i).isdigit()])
+        if depth == 9:
+            move = random.randint(0, 10)
+        else:
+            move = self.call_minimax(points, depth)
+            move = abs(3 * move[0] + move[1])
+        return move
 
     def fill(self, move, symbol):
         """ Fill cell in grid model and sync it with view  """
@@ -109,37 +114,40 @@ class TicTacToe:
         else:
             self.ui.print("Game over!")
 
-    def check_win(self):
+    def check_win(self, tactics: dict = None):
         """ Check win method after every move """
-        winner = self.game.check_win()
-        if winner:
-            self.ui.print("Victory!", f"{winner.name} has won!")
-            self.__log_results(winner)
-            if self.game.mode == "console":
-                self.ui.print("Back to menu? (yes/no) - 'no' for exit.")
-                choice = self.ui.input()
-                if choice == "yes":
-                    self.show_menu()
-                    return
-                else:
-                    self.__exit()
-            self.ui.show_menu()
-            self.reset_game()
-            return True
-        elif self.grid.check_filled():
-            self.ui.print(message=f"Draw game!")
-            if self.game.mode == "console":
-                self.ui.print("Back to menu? (yes/no) - 'no' for exit.")
-                choice = self.ui.input()
-                if choice == "yes":
-                    self.show_menu()
-                    return
-                else:
-                    self.__exit()
-            self.ui.show_menu()
-            self.reset_game()
-            return True
-        return False
+        if tactics is None:
+            winner = self.game.check_win()
+            if winner:
+                self.ui.print("Victory!", f"{winner.name} has won!")
+                self.__log_results(winner)
+                if self.game.mode == "console":
+                    self.ui.print("Back to menu? (yes/no) - 'no' for exit.")
+                    choice = self.ui.input()
+                    if choice == "yes":
+                        self.show_menu()
+                        return
+                    else:
+                        self.__exit()
+                self.ui.show_menu()
+                self.reset_game()
+                return True
+            elif self.grid.check_filled():
+                self.ui.print(message=f"Draw game!")
+                if self.game.mode == "console":
+                    self.ui.print("Back to menu? (yes/no) - 'no' for exit.")
+                    choice = self.ui.input()
+                    if choice == "yes":
+                        self.show_menu()
+                        return
+                    else:
+                        self.__exit()
+                self.ui.show_menu()
+                self.reset_game()
+                return True
+        else:
+            winner = self.game.check_win(tactics)
+        return winner
 
     def next_move(self, move=None):
         """ Main game logic.
@@ -172,7 +180,7 @@ class TicTacToe:
                 self.next_move(self.ui.input_move(f"Now {self.game.current_player.name} turn: "))
             elif isinstance(self.game.current_player, Computer):
                 self.next_move()
-                return
+            return
         self.__change_player()
         if isinstance(self.game.current_player, Computer):
             self.next_move()
@@ -187,46 +195,45 @@ class TicTacToe:
         if self.game.mode == "console":
             self.show_menu()
 
-    def call_minimax(self):
+    def call_minimax(self, points, depth):
         """ Setup method for beginning AI move calculating """
-        points = self.grid.cells.copy()
-        ai_turn = isinstance(self.game.current_player, Computer)
-        return self.__minimax(points, 0, ai_turn)
+        return self.__minimax(points, depth, self.game.current_player)
 
-    def __minimax(self, points, depth, ai_turn):
+    def __minimax(self, points, depth, player):
         """ Minimax algorithm for computer """
-        if ai_turn is True:
-            player = self.game.player2
-        else:
-            player = self.game.player1
-
-        # score system for every cell
-        player_symbol = player.symbol
-        # number of cell to go, will back later
-        cell = 0
-        if isinstance(self.check_win(), Person) or isinstance(self.check_win(), Computer):
-            return self.__scores[player_symbol]
-        if self.grid.check_filled() is True:
-            return self.__scores["draw"]
-
+        global m_c
+        m_c += 1
         if isinstance(player, Computer):
-            best_score = -sys.maxsize
-            for number in range(9):
-                cur_cell = points[number]
-                if isinstance(cur_cell, int) or cur_cell.isdigit():
-                    points[number] = player_symbol
-                    score = self.__minimax(points, depth+1, not ai_turn)[0]
-                    points[number] = self.grid.cells[number]
-                    best_score = max(best_score, score)
-                    cell = points[number]
+            best = [-1, -1, -infinity]
+            next_player = self.game.player1
         else:
-            best_score = sys.maxsize
-            for number in range(9):
-                cur_cell = points[number]
-                if isinstance(cur_cell, str) and cur_cell.isdigit():
-                    points[number] = player_symbol
-                    score = self.__minimax(points, depth + 1, not ai_turn)[0]
-                    points[number] = self.grid.cells[number]
-                    best_score = max(best_score, score)
-                    cell = points[number]
-        return best_score, cell
+            best = [-1, -1, +infinity]
+            next_player = self.game.player2
+
+        tactic = {"grid": points, "player": player}
+        winner = self.check_win(tactics=tactic)
+        if depth == 0 or winner is not False:
+            if isinstance(winner, Person):
+                score = 1
+            elif isinstance(winner, Computer):
+                score = -1
+            else:
+                score = 0
+            return [-1, -1, score]
+
+        for cell in points:
+            if isinstance(cell, int) or cell.isdigit():
+                number = points.index(cell)
+                points[number] = player.symbol
+                score = self.__minimax(points, depth - 1, next_player)
+                points[number] = self.grid.cells[number]
+                score[0] = ceil(cell//3)-1
+                score[1] = cell - 3 * cell // 3
+                if isinstance(player, Computer):
+                    if score[2] > best[2]:
+                        best = score  # max value
+                else:
+                    if score[2] < best[2]:
+                        best = score  # min value
+        #print("best:", best )
+        return best
