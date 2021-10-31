@@ -1,0 +1,4 @@
+# This is begin console command for docker.
+# Command example for run from root project directory (.env file is in root folder)
+sudo docker-compose --env-file .env  -f 03_databeses/14_practice_2.1/docker-compose.yml up -d
+
