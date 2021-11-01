@@ -1,5 +1,7 @@
 # This is start for  console commands for docker
-# Docker image should run from 14_practice_2.1
+# Next commands showsDocker process if docker runs from root folder using
+sudo docker-compose --env-file .env -f 03_databeses/14_practice_2.1/docker-compose.yml up -d
+
 sudo docker cp ../16_practice_2.3/potential_customers.csv 14_practice_21_db_1:/usr/src/potential_customers.csv
 sudo docker cp ../16_practice_2.3/task2_3-1.sql 14_practice_21_db_1:/usr/src/task2_3-1.sql
 sudo docker-compose --env-file .env exec db psql -U postgres -d shop -f /usr/src/task2_3-1.sql
