@@ -1,0 +1,7 @@
+# This is start for  console commands for docker
+# Next commands shows commands if docker runs from root folder
+sudo docker-compose --env-file .env -f 03_databeses/14_practice_2.1/docker-compose.yml up -d
+
+sudo docker cp ../16_practice_2.3/task.sql 14_practice_21_db_1:/usr/src/task.sql
+sudo docker-compose --env-file .env exec db psql -U postgres -d shop -f /usr/src/task2_3-1.sql
+

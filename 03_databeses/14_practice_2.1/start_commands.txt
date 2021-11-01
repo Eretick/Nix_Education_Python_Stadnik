@@ -1,3 +1,6 @@
+# if need to remove volumes
+docker volume rm $(docker volume ls -q)
+
 # This is begin console command for docker
 sudo docker-compose --env-file .env up -d
 sudo docker cp ./task_data/. 14_practice_21_db_1:/usr/src/task-data
