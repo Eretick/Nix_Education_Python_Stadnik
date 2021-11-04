@@ -1,0 +1,8 @@
+# This is start for  console commands for docker
+# Next commands shows commands if docker runs from root folder
+sudo docker-compose --env-file .env -f 03_databeses/14_practice_2.1/docker-compose.yml up -d
+
+# These commands should be launch from yml folder (03_databases/14_practice_2.1)
+sudo docker-compose exec db psql -U postgres -c "DROP DATABASE IF EXISTS cars_shop;"
+sudo docker-compose exec db psql -U postgres -c "CREATE DATABASE cars_shop;"
+
